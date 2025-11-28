@@ -668,7 +668,11 @@ export default function OpportunitiesStore({
                         {new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: item.currency
-                        }).format('price' in item ? item.price : Number(item.value))}
+                        }).format(
+                          'price' in item
+                            ? (item as any).price
+                            : ('value' in item ? Number((item as any).value) : 0)
+                        )}
                       </span>
                       <span className="text-xs text-slate-500 font-semibold uppercase mt-1">
                         PRODUTO EM {item.currency === 'USD' ? 'DÓLAR' : item.currency === 'EUR' ? 'EURO' : item.currency}
@@ -678,7 +682,11 @@ export default function OpportunitiesStore({
                     new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL'
-                    }).format('price' in item ? item.price : Number(item.value))
+                    }).format(
+                      'price' in item
+                        ? (item as any).price
+                        : ('value' in item ? Number((item as any).value) : 0)
+                    )
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">

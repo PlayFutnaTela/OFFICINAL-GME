@@ -23,8 +23,15 @@ const AvatarImage = ({ src, alt }: { src?: string | null, alt?: string }) => {
   )
 }
 
-const AvatarFallback = ({ children }: { children?: React.ReactNode }) => (
-  <span className="flex h-full w-full items-center justify-center text-sm font-medium text-muted-foreground">{children}</span>
+const AvatarFallback = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={["flex h-full w-full items-center justify-center text-sm font-medium text-muted-foreground", className]
+      .filter(Boolean)
+      .join(' ')}
+    {...props}
+  >
+    {children}
+  </span>
 )
 
 export { Avatar, AvatarImage, AvatarFallback }

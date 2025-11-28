@@ -70,7 +70,7 @@ export default function AvatarUpload({ uid, url, size = 150, onUpload }: AvatarU
             <div className="relative group">
                 <Avatar style={{ height: size, width: size }} className="border-4 border-white shadow-lg">
                     {avatarUrl ? (
-                        <AvatarImage src={avatarUrl} alt="Avatar" className="object-cover" />
+                        <AvatarImage src={avatarUrl} alt="Avatar" />
                     ) : (
                         <AvatarFallback className="bg-gray-100 text-gray-400">
                             <Camera size={size / 3} />
