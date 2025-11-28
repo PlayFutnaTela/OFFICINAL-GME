@@ -22,52 +22,62 @@ type Product = {
 export default async function OpportunitiesPage() {
   const supabase = createClient()
 
-  // Fetch user profile for avatar
-  let userProfile = null
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url, full_name')
-        .eq('id', user.id)
-        .single()
+  // Fetch data in parallel to improve performance
+  const [userProfileResponse, productsResponse] = await Promise.all([
+    // Fetch user profile for avatar
+    (async () => {
+      let userProfile = null
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('avatar_url, full_name')
+            .eq('id', user.id)
+            .single()
 
-      // Construct full avatar URL from Supabase storage
-      if (data?.avatar_url) {
-        const { data: publicUrlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(data.avatar_url)
+          // Construct full avatar URL from Supabase storage
+          if (data?.avatar_url) {
+            const { data: publicUrlData } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(data.avatar_url)
 
-        userProfile = {
-          ...data,
-          avatar_url: publicUrlData.publicUrl
+            userProfile = {
+              ...data,
+              avatar_url: publicUrlData.publicUrl
+            }
+          } else {
+            userProfile = data
+          }
         }
-      } else {
-        userProfile = data
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
       }
-    }
-  } catch (error) {
-    console.error('Error fetching user profile:', error)
-  }
+      return userProfile
+    })(),
 
-  // Fetch ONLY products (removed opportunities)
-  const { data: products, error: productsError } = await supabase
-    .from('products')
-    .select('id, title, subtitle, price, category, status, type, images, commission_percent, stock, created_at, description, currency')
-    .eq('status', 'active') // Only show active products
-    .order('created_at', { ascending: false })
-    .limit(200)
+    // Fetch ONLY products (removed opportunities)
+    (async () => {
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, title, subtitle, price, category, status, type, images, commission_percent, stock, created_at, description, currency')
+        .eq('status', 'active') // Only show active products
+        .order('created_at', { ascending: false })
+        .limit(200)
 
-  if (productsError) {
-    console.error('Error fetching products:', productsError)
-  }
+      if (productsError) {
+        console.error('Error fetching products:', productsError)
+      }
+
+      return products || []
+    })()
+  ])
 
   return (
     <OpportunitiesStore
       initialOpportunities={[]}
-      initialProducts={products || []}
-      userProfile={userProfile}
+      initialProducts={productsResponse}
+      userProfile={userProfileResponse}
     />
   )
 }

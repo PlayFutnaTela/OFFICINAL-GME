@@ -22,6 +22,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 import { TextRotate } from '@/style/efect-hover-text'
 import ImageHeroCarousel from './image-hero-carousel'
@@ -261,11 +262,13 @@ export default function OpportunitiesStore({
           <div className="flex items-center gap-[5px]">
             <div className="flex-shrink-0 flex items-center justify-center">
               {/* Reduce logo scale by ~60%: width 40% of the container, capped for very large screens */}
-              <img
+              <Image
                 src="/logo.png"
                 alt="Gerezim logo"
                 className="object-contain"
                 style={{ width: '80px', maxWidth: '240px', height: 'auto' }}
+                width={80}
+                height={20}
               />
             </div>
             <div>
@@ -290,10 +293,12 @@ export default function OpportunitiesStore({
               className="relative w-12 h-12 rounded-full border border-gold-500 shadow-md shadow-gold-400/50 overflow-hidden transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-gold-500/60 cursor-pointer items-center"
             >
               {userProfile?.avatar_url ? (
-                <img
+                <Image
                   src={userProfile.avatar_url}
                   alt={userProfile.full_name || 'User'}
                   className="w-full h-full object-cover"
+                  width={48}
+                  height={48}
                   onError={(e) => {
                     console.error('Avatar image failed to load:', userProfile.avatar_url)
                     e.currentTarget.style.display = 'none'
@@ -334,10 +339,12 @@ export default function OpportunitiesStore({
               <div className="w-24 h-24 rounded-full bg-white border border-gold-300 flex items-center justify-center shadow-[0_2px_8px_rgba(197,154,0,0.15)] group-hover:shadow-[0_4px_12px_rgba(197,154,0,0.3)] group-hover:-translate-y-1 transition-all duration-200">
                 {/* Category Icon Image */}
                 <div className="w-16 h-16 flex items-center justify-center">
-                  <img
+                  <Image
                     src={categoryIcons[category] || '/icones-categorias/premium.png'}
                     alt={category}
                     className="w-full h-full object-contain"
+                    width={64}
+                    height={64}
                   />
                 </div>
               </div>
@@ -393,10 +400,12 @@ export default function OpportunitiesStore({
                       {/* Product Image */}
                       <div className="aspect-square bg-slate-100 relative overflow-hidden">
                         {thumbnail ? (
-                          <img
+                          <Image
                             src={thumbnail}
                             alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            width={300}
+                            height={300}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
@@ -587,16 +596,20 @@ export default function OpportunitiesStore({
               <div className="relative">
                 {/* Product Image */}
                 {'images' in item && item.images?.length > 0 ? (
-                  <img
+                  <Image
                     src={item.images[0]}
                     alt={item.title}
                     className="w-full h-48 object-cover"
+                    width={300}
+                    height={200}
                   />
                 ) : 'photos' in item && item.photos?.length > 0 ? (
-                  <img
+                  <Image
                     src={item.photos[0]}
                     alt={item.title}
                     className="w-full h-48 object-cover"
+                    width={300}
+                    height={200}
                   />
                 ) : (
                   <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-48 flex items-center justify-center">
@@ -723,16 +736,20 @@ export default function OpportunitiesStore({
               <div className="flex gap-6 p-4">
                 {/* Product Image */}
                 {'images' in item && item.images?.length > 0 ? (
-                  <img
+                  <Image
                     src={item.images[0]}
                     alt={item.title}
                     className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
+                    width={128}
+                    height={128}
                   />
                 ) : 'photos' in item && item.photos?.length > 0 ? (
-                  <img
+                  <Image
                     src={item.photos[0]}
                     alt={item.title}
                     className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
+                    width={128}
+                    height={128}
                   />
                 ) : (
                   <div className="bg-gray-200 border-2 border-dashed rounded-lg w-32 h-32 flex-shrink-0 flex items-center justify-center">

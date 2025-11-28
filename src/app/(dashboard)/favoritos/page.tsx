@@ -45,7 +45,7 @@ export default async function FavoritosPage() {
         ...fav.product,
         favorite_id: fav.id,
         favorited_at: fav.created_at
-    })).filter(p => p.id) || []
+    })).filter(p => p && 'id' in p && p.id) as any[] || []
 
-    return <FavoritesList initialProducts={products} userId={user.id} />
+    return <FavoritesList initialProducts={products as any} userId={user.id} />
 }

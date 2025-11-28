@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
 
 const slides = [
   '/slide-desktop/1.png',
@@ -26,18 +27,24 @@ export default function ImageHeroCarousel({ interval = 10000 }: { interval?: num
   return (
     <div className="w-full flex justify-center">
       <div className="w-full max-w-6xl relative rounded-xl overflow-hidden shadow-lg bg-gold-50">
-        <div className="w-full h-44 sm:h-56 md:h-64 lg:h-72 xl:h-80 relative flex items-center justify-center bg-gold-50">
+        <div className="w-full h-44 sm:h-56 md:h-64 lg:h-72 xl:h-80 relative bg-gold-50">
           <AnimatePresence initial={false} mode="wait">
-            <motion.img
+            <motion.div
               key={slides[index]}
-              src={slides[index]}
-              alt={`slide-${index + 1}`}
-              className="max-w-full max-h-full object-contain w-full h-full"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.7 }}
-            />
+              className="w-full h-full relative"
+            >
+              <Image
+                src={slides[index]}
+                alt={`slide-${index + 1}`}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </motion.div>
           </AnimatePresence>
         </div>
 

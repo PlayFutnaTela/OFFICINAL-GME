@@ -28,9 +28,18 @@ export function ConciergeMobileMenu() {
         { icon: User, label: 'Perfil', href: '/perfil' },
     ]
 
+    // Converter os ícones do formato Lucide para o formato esperado por MenuBar
+    const convertedMenuItems = menuItems.map(item => ({
+        ...item,
+        icon: (props: React.SVGProps<SVGSVGElement>) => {
+            const LucideIcon = item.icon as React.FC<React.SVGProps<SVGSVGElement>>
+            return <LucideIcon {...props} />
+        }
+    }))
+
     return (
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full px-4 flex justify-center">
-            <MenuBar items={menuItems} className="shadow-lg" />
+            <MenuBar items={convertedMenuItems} className="shadow-lg" />
         </div>
     )
 }

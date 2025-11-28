@@ -7,6 +7,7 @@ const nextConfig = {
                 hostname: '**.supabase.co',
             },
         ],
+        unoptimized: true, // Allow local images to be served without optimization
         formats: ['image/avif', 'image/webp'],
     },
 }

@@ -16,10 +16,6 @@ export default function AuthMonitor() {
           console.info('AuthMonitor: user signed out (event SIGNED_OUT)')
           toast.info('Você foi desconectado. Caso não tenha saído manualmente, verifique sua sessão e tente entrar novamente.')
           break
-        case 'TOKEN_REFRESH_FAILED':
-          console.warn('AuthMonitor: token refresh failed — session may have expired')
-          toast.error('Sua sessão expirou. Por favor, faça login novamente.')
-          break
         case 'USER_DELETED':
           console.warn('AuthMonitor: user account deleted from auth provider')
           toast.error('Conta removida. Contacte o administrador se isso foi um erro.')
@@ -29,7 +25,11 @@ export default function AuthMonitor() {
           break
         default:
           // debug for other events
-          console.debug('AuthMonitor: other auth event', event)
+          if (event === 'TOKEN_REFRESHED') {
+            console.info('AuthMonitor: session token refreshed com sucesso')
+          } else {
+            console.debug('AuthMonitor: other auth event', event)
+          }
       }
     })
 
