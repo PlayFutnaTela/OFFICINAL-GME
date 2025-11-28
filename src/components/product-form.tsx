@@ -81,7 +81,7 @@ const CATEGORIES_REQUIRING_LOCATION = ['Imovel', 'Empresas', 'Industrias']
 
 export default function ProductForm({ onCreated, onUpdated, onCancel, initialSession, product }: Props) {
   // Supabase client for database operations (insert/update products)
-  const supabase = createClient(initialSession)
+  const supabase = createClient()
 
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')

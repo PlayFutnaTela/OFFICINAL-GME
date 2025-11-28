@@ -10,11 +10,28 @@ import {
 } from "react"
 import {
   AnimatePresence,
-  AnimatePresenceProps,
   motion,
-  MotionProps,
-  Transition,
-} from "motion/react"
+} from "framer-motion"
+
+type AnimatePresenceProps = {
+  children?: React.ReactNode
+  mode?: "popLayout" | "sync" | "wait"
+  initial?: boolean
+  custom?: any
+}
+
+type MotionProps = {
+  initial?: any
+  animate?: any
+  exit?: any
+  transition?: any
+  layout?: boolean
+  className?: string
+  children?: React.ReactNode
+  [key: string]: any
+}
+
+type Transition = any
 
 import { cn } from "@/lib/utils"
 

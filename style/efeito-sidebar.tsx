@@ -71,11 +71,18 @@ export const Sidebar = ({
   );
 };
 
-export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
+export const SidebarBody = ({ className, children, ...rest }: React.ComponentProps<typeof motion.div>) => {
+  // Extract only the props that are valid for HTML div elements
+  const { animate, layout, initial, transition, drag, onDrag, ...validDivProps } = rest as any
+
   return (
     <>
-      <DesktopSidebar {...props} />
-      <MobileSidebar {...(props as React.ComponentProps<"div">)} />
+      <DesktopSidebar className={className} {...validDivProps}>
+        {children}
+      </DesktopSidebar>
+      <MobileSidebar className={className} {...validDivProps}>
+        {children}
+      </MobileSidebar>
     </>
   );
 };

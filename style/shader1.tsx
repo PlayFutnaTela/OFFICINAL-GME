@@ -80,12 +80,14 @@ export function ShaderPlane({
   return (
     <mesh ref={mesh} position={position}>
       <planeGeometry args={[2, 2, 32, 32]} />
-      <shaderMaterial
-        uniforms={uniforms}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        transparent
-        side={THREE.DoubleSide}
+      <primitive
+        object={new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader,
+          fragmentShader,
+          transparent: true,
+          side: THREE.DoubleSide,
+        })}
       />
     </mesh>
   )
@@ -110,7 +112,14 @@ export function EnergyRing({
   return (
     <mesh ref={mesh} position={position}>
       <ringGeometry args={[radius * 0.8, radius, 32]} />
-      <meshBasicMaterial color="#ff5722" transparent opacity={0.6} side={THREE.DoubleSide} />
+      <primitive
+        object={new THREE.MeshBasicMaterial({
+          color: "#ff5722",
+          transparent: true,
+          opacity: 0.6,
+          side: THREE.DoubleSide,
+        })}
+      />
     </mesh>
   )
 }

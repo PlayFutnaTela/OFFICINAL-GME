@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, type Transition } from "framer-motion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -15,9 +15,9 @@ interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement> {
   items: MenuBarItem[]
 }
 
-const springConfig = {
+const springConfig: Transition = {
   duration: 0.3,
-  ease: "easeInOut"
+  ease: [0.16, 1, 0.3, 1]
 }
 
 export function MenuBar({ items, className, ...props }: MenuBarProps) {
@@ -50,7 +50,6 @@ export function MenuBar({ items, className, ...props }: MenuBarProps) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
-            transition={springConfig}
             className="absolute left-0 right-0 -top-[31px] pointer-events-none z-50"
           >
             <motion.div
@@ -64,7 +63,6 @@ export function MenuBar({ items, className, ...props }: MenuBarProps) {
               )}
               initial={{ x: tooltipPosition.left }}
               animate={{ x: tooltipPosition.left }}
-              transition={springConfig}
               style={{ width: "auto" }}
             >
               <p className="text-[13px] font-medium leading-tight whitespace-nowrap">
