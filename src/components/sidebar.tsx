@@ -24,7 +24,7 @@ export default async function Sidebar() {
   const isAdmin = role === 'adm'
   return (
     // sidebar fixed to the left of the viewport
-    <div className="fixed inset-y-0 left-0 w-[12.8rem] flex flex-col border-r bg-navy-500 text-white border-navy-700">
+    <div className="hidden md:flex fixed inset-y-0 left-0 w-[12.8rem] flex-col border-r bg-navy-500 text-white border-navy-700">
       <div className="flex h-14 items-center border-b border-navy-700 px-4 font-semibold tracking-tight text-white">
         {/* Logo (left) and name (right) - name increased by 20% */}
         <div className="flex items-center gap-3">
@@ -77,11 +77,11 @@ export default async function Sidebar() {
           )}
           {isAdmin && (
             <Link
-              href="/contatos"
+              href="/clientes"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/70 transition-all hover:text-white hover:bg-navy-600"
             >
               <Users className="h-4 w-4 text-gold-300" />
-              Contatos
+              Clientes
             </Link>
           )}
           {isAdmin && (

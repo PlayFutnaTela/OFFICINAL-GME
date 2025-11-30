@@ -21,7 +21,7 @@ export function ConciergeMobileMenu() {
         { icon: Heart, label: 'Favoritos', href: '/favoritos' },
         { icon: ShoppingCart, label: 'Produtos', href: '/produtos' },
         { icon: FileText, label: 'Insumos', href: '/insumos' },
-        { icon: Users, label: 'Contatos', href: '/contatos' },
+        { icon: Users, label: 'Clientes', href: '/clientes' },
         { icon: KanbanSquare, label: 'Pipeline', href: '/pipeline' },
         { icon: BarChart3, label: 'Relatórios', href: '/relatorios' },
         { icon: MessageSquare, label: 'Concierge', href: '/concierge' },

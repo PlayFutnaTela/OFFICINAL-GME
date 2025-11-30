@@ -2,7 +2,7 @@
 
 ## Visão Geral do Projeto
 
-O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para gestão de oportunidades de negócios, contatos e pipeline de vendas. O sistema permite o gerenciamento de oportunidades de negócios em diferentes categorias (carros, imóveis, empresas e itens premium), gestão de contatos com leads e clientes, e visualização do pipeline de vendas em formato Kanban.
+O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para gestão de oportunidades de negócios, **clientes** e pipeline de vendas. O sistema permite o gerenciamento de oportunidades de negócios em diferentes categorias (carros, imóveis, empresas e itens premium), gestão de clientes (leads) e visualização do pipeline de vendas em formato Kanban.
 
 ## Arquitetura e Tecnologias Utilizadas
 
@@ -75,7 +75,7 @@ O projeto está dividido em duas partes principais:
 - `pipeline_stage`: Texto (valores: 'Novo', 'Interessado', 'Proposta enviada', 'Negociação', 'Finalizado')
 - `created_at`: Timestamp com fuso horário
 
-#### 2. `contacts` (Contatos)
+#### 2. `contacts` (Clientes)
 - `id`: UUID (chave primária)
 - `user_id`: UUID (referência para auth.users)
 - `name`: Texto (nome do contato)
@@ -136,11 +136,11 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Filtros e ordenação
 - Integração com WhatsApp para compartilhamento
 
-### 4. Gestão de Contatos
-- Cadastro e visualização de contatos
+### 4. Gestão de Clientes
+- Cadastro e visualização de clientes
 - Classificação por status (quente, morno, frio)
 - Histórico de interações
-- Cadastro de novos contatos
+- Cadastro de novos clientes
 
 ### 5. Pipeline de Vendas
 - Visualização Kanban com os estágios:

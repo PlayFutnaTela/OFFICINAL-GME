@@ -29,7 +29,7 @@ export default function NewContactForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       console.error('Usuário não autenticado. Redirecionando para login.')
-      toast.error('Você precisa estar logado para criar contatos')
+      toast.error('Você precisa estar logado para criar clientes')
       router.push('/login')
       setLoading(false)
       return
@@ -52,12 +52,13 @@ export default function NewContactForm() {
     }).select('id').single()
 
     if (error) {
-      console.error('Erro ao inserir contato:', error)
-      toast.error('Erro ao criar contato: ' + (error.message || 'verifique o console'))
+      console.error('Erro ao inserir cliente:', error)
+      toast.error('Erro ao criar cliente: ' + (error.message || 'verifique o console'))
     } else {
-      console.log('Contato criado com sucesso', data)
-      toast.success('Contato criado!')
-      router.push('/contatos')
+      console.log('Cliente criado com sucesso', data)
+        console.log('Cliente criado com sucesso', data)
+        toast.success('Cliente criado!')
+        router.push('/clientes')
       router.refresh()
     }
     setLoading(false)
@@ -67,7 +68,7 @@ export default function NewContactForm() {
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Novo Contato</CardTitle>
+           <CardTitle>Novo Cliente</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -111,7 +112,7 @@ export default function NewContactForm() {
             <div className="flex justify-end gap-4">
               <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar Contato'}
+                {loading ? 'Salvando...' : 'Salvar Cliente'}
               </Button>
             </div>
           </form>

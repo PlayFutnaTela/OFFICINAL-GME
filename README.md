@@ -1,6 +1,6 @@
 # Plataforma de Intermediação de Negócios (MVP)
 
-Este é o MVP de uma plataforma para gestão de oportunidades de negócios (carros, imóveis, empresas), contatos e pipeline de vendas.
+Este é o MVP de uma plataforma para gestão de oportunidades de negócios (carros, imóveis, empresas), clientes e pipeline de vendas.
 
 ## Tecnologias
 
@@ -53,7 +53,7 @@ Este é o MVP de uma plataforma para gestão de oportunidades de negócios (carr
 - **Login**: Autenticação via Email/Senha (Supabase Auth).
 - **Dashboard**: Visão geral de métricas.
 - **Oportunidades**: Cadastro e listagem de itens à venda.
-- **Contatos**: Gestão de leads e clientes.
+- **Clientes**: Gestão de leads e clientes.
 - **Pipeline**: Visualização Kanban do status das negociações.
 - **Relatórios**: Métricas de vendas e comissões.
 - **WhatsApp**: Geração automática de fichas de venda para envio.
