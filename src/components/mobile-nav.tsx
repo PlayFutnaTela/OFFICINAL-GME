@@ -16,7 +16,7 @@ const navItems = [
     icon: () => (
       <div className="relative w-[52px] h-[52px]">
         <Image
-          src="/svg-logo.svg"
+          src="/logo.png"
           alt="Oportunidades"
           fill
           className="object-contain"
