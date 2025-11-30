@@ -27,6 +27,13 @@ O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para ges
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Estilo**: Tailwind CSS com componentes acessíveis
 
+### Ferramentas / Bibliotecas adicionais (adicionadas / utilizadas recentemente)
+- **react-three-fiber / three.js** — usado para efeitos gráficos 3D e planos com shaders (ex.: `style/shader1.tsx`, `style/shader-bg.tsx`).
+- **ShaderMaterials personalizados** — componentes que usam GLSL (vertex/fragment shaders) para efeitos visuais avançados.
+- **Sonner** — biblioteca usada para os toasts informativos (ex.: `src/components/ui/sonner.tsx`).
+- **Framer Motion** — animações e transições (diversos componentes UI como `style/appmenu.tsx`, `style/efeito-sidebar.tsx` e outros).  
+- **@supabase/ssr / createBrowserClient** — utilização do cliente Supabase para browser/SSR (com atenção para uso em server-side - ver observações de build).
+
 ## Estrutura do Projeto
 
 O projeto está dividido em duas partes principais:
@@ -41,6 +48,15 @@ O projeto está dividido em duas partes principais:
 - `schema.sql` - Script de criação do banco de dados com RLS (Row Level Security)
 - `seed.sql` - Dados de exemplo para testes
 - `migrations/` - Pasta para futuras migrações de banco
+
+## Atualizações e correções recentes (resumo técnico)
+
+- Repositório limpo e enviado ao GitHub (remoção de `node_modules` do histórico, criação de `.gitignore` adequada). Importante: arquivos grandes (ex.: binários do SWC) impossibilitavam push — histórico reescrito e push forçado para `https://github.com/PlayFutnaTela/OFFICINAL-GME.git`.
+- Hooks e clientes Supabase corrigidos para serem seguros durante builds/SSR — adicionada verificação para `document` antes de acessar cookies no cliente (arquivo: `src/lib/supabase/client.ts`).
+- Adicionado `src/app/not-found.tsx` para corrigir falhas no export/static generation que ocorriam em builds na Vercel.
+- Correções de tipagem e compatibilidade TypeScript em vários componentes para passar as checagens de tipo durante `next build` (ex.: `src/components/auth-monitor.tsx`, `src/components/ui/avatar.tsx`, `src/components/opportunities-store.tsx`, `src/components/product-list.tsx`).
+- Ajustes em componentes com Framer Motion para respeitar tipos e evitar erros de compilação (`style/appmenu.tsx`, `style/efeito-sidebar.tsx`).
+- Integração com shaders (react-three) tipada via `args` para o `shaderMaterial` (ex.: `style/shader1.tsx`) evitando erros de tipos durante build.
 
 ## Banco de Dados
 
@@ -155,6 +171,18 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Integração com WhatsApp para compartilhamento de oportunidades
 - Google Charts para visualização de dados
 - Supabase Auth para autenticação
+
+### Observações de Build / Deploy (Vercel)
+
+- O projeto roda em Next.js 14 — Vercel executa `npm run build` em cada deploy e precisa das variáveis públicas do Supabase definidas na interface da Vercel.  Configurar **exatamente**: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (valores públicos do projeto supabase) para `Preview` e `Production`.
+- Evite comitar `node_modules` e arquivos build (`.next`) — eles foram removidos do histórico do repo e listados no `.gitignore`.
+- Teste o build localmente antes do push: `npm run build` — durante desenvolvimento verifique mensagens sobre SSR (ex.: `document is not defined`) que indicam código que toca `window`/`document` no lado do servidor.
+
+## Boas práticas e recomendações (deploy / infra)
+
+- Em ambientes serverless (Vercel) prefira clientes Supabase que funcionem no servidor ou proteja acessos dependentes do DOM (cookies/`localStorage`) com guards — isso evita erros durante a exportação/prerender.
+- Mantenha a região das Functions na Vercel próxima ou igual à região do Supabase para reduzir latência entre funções e banco.
+- Para arquivos grandes ou binários nativos (p.ex.: `next-swc` em `node_modules`), não mantenha versões binárias no histórico do Git — use `.gitignore` e Git LFS se precisar armazenar arquivos maiores que 100MB.
 
 ## Características Técnicas
 

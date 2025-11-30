@@ -255,7 +255,7 @@ export default function OpportunitiesStore({
   ]
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6">
+    <div className="p-4 pb-24 sm:p-6 md:p-8 md:pb-8 space-y-6">
       {/* Header Section */}
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
