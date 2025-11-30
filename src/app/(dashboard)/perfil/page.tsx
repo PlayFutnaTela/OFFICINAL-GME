@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { User } from '@supabase/supabase-js'
+import { SITE_CATEGORIES } from '@/lib/categories'
 import { UserCircle, Mail, Calendar, Shield, Save, Loader2 } from 'lucide-react'
 import ChangePasswordModal from '@/components/change-password-modal'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ export default function ProfilePage() {
     const [city, setCity] = useState('')
     const [state, setState] = useState('')
     const [bio, setBio] = useState('')
+    const [interests, setInterests] = useState<string[]>([])
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
     const [role, setRole] = useState<'user' | 'adm'>('user')
 
@@ -37,7 +39,7 @@ export default function ProfilePage() {
 
                 const { data, error, status } = await supabase
                     .from('profiles')
-                    .select(`full_name, phone, city, state, bio, avatar_url, role`)
+                    .select(`full_name, phone, city, state, bio, avatar_url, role, interests`)
                     .eq('id', user.id)
                     .single()
 
@@ -52,6 +54,7 @@ export default function ProfilePage() {
                     setState(data.state || '')
                     setBio(data.bio || '')
                     setAvatarUrl(data.avatar_url)
+                    setInterests(data.interests ?? [])
                     if (data.role) setRole(data.role)
                 }
             }
@@ -83,6 +86,7 @@ export default function ProfilePage() {
                 state,
                 bio,
                 avatar_url: avatarUrl,
+                interests,
                 updated_at: new Date().toISOString(),
             }
 
@@ -209,6 +213,29 @@ export default function ProfilePage() {
                                     placeholder="Conte um pouco sobre você..."
                                     className="resize-none h-24"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="interests">Interesses</Label>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {SITE_CATEGORIES.map(cat => (
+                                        <label key={cat} className="flex items-center gap-2 text-sm p-2 rounded border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={interests.includes(cat)}
+                                                onChange={() => {
+                                                    if (interests.includes(cat)) {
+                                                        setInterests(interests.filter(i => i !== cat))
+                                                    } else {
+                                                        setInterests([...interests, cat])
+                                                    }
+                                                }}
+                                                className="h-4 w-4 rounded"
+                                            />
+                                            <span className="select-none">{cat}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="pt-4 flex justify-end">

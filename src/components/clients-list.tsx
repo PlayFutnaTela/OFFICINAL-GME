@@ -1,136 +1,149 @@
 "use client"
 
-import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Phone, User } from 'lucide-react'
+import React, { useMemo, useState } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import { Button } from './ui/button'
+import { Search } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 type Contact = {
   id: string
-  user_id?: string | null
   name: string
   phone?: string | null
-  source?: string | null
   interests?: string | null
+  source?: string | null
   status?: string
-  created_at?: string
+  user_id?: string | null
+  avatar_url?: string | null
 }
 
-export default function ClientsList({ initialContacts }: { initialContacts: Contact[] }) {
+type Props = {
+  initialContacts: Contact[]
+}
+
+export default function ClientsList({ initialContacts }: Props) {
+  const router = useRouter()
+  const [q, setQ] = useState('')
   const [selected, setSelected] = useState<Contact | null>(null)
-  const [details, setDetails] = useState<any | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [favorites, setFavorites] = useState<any[] | null>(null)
+  const supabase = createClient()
 
-  async function openDetails(contact: Contact) {
-    setSelected(contact)
-    setDetails(null)
-    setLoading(true)
-    try {
-      const r = await fetch(`/api/clients/${contact.id}/details`)
-      if (r.ok) setDetails(await r.json())
-      else setDetails({ error: 'Falha ao obter detalhes' })
-    } catch (err) {
-      setDetails({ error: String(err) })
-    } finally {
-      setLoading(false)
+  const results = useMemo(() => {
+    if (!q) return initialContacts ?? []
+    const lower = q.toLowerCase()
+    return (initialContacts || []).filter(c => (
+      c.name?.toLowerCase().includes(lower) ||
+      c.phone?.toLowerCase().includes(lower) ||
+      c.interests?.toLowerCase().includes(lower) ||
+      c.source?.toLowerCase().includes(lower)
+    ))
+  }, [q, initialContacts])
+
+  async function openProfile(c: Contact) {
+    setSelected(c)
+    // load favorites for this profile (user_id) — optional, best effort
+    if (c.user_id) {
+      try {
+        const { data } = await supabase.from('favorites').select('*, products(*)').eq('user_id', c.user_id)
+        setFavorites(data ?? [])
+      } catch (err) {
+        setFavorites([])
+      }
+    } else {
+      setFavorites([])
     }
   }
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'quente': return 'bg-red-500'
-      case 'morno': return 'bg-yellow-500'
-      case 'frio': return 'bg-blue-500'
-      default: return 'bg-slate-500'
-    }
-  }
+  const cardShadow = '0 10px 30px rgba(212,175,55,0.14)'
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {initialContacts.map(contact => (
-        <div key={contact.id}>
-          <Card className="cursor-pointer" onClick={() => openDetails(contact)}>
-            <CardHeader className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <CardTitle className="text-base font-medium">{contact.name}</CardTitle>
-              </div>
-              <Badge className={getStatusColor(contact.status)}>{contact.status || 'novo'}</Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                <div className="flex items-center gap-2"><Phone className="h-4 w-4" />{contact.phone || 'Sem telefone'}</div>
-                <div className="mt-2"><span className="font-medium">Interesses: </span>{contact.interests || '-'}</div>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 justify-between">
+        <div className="relative max-w-md w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nome, telefone ou interesses..." className="pl-10 w-full border rounded-md py-2 px-3" />
         </div>
-      ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {results.map(contact => (
+          <div
+            key={contact.id}
+            onClick={() => openProfile(contact)}
+            role="button"
+            className="bg-white rounded-lg p-4 cursor-pointer transition-transform transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(212,175,55,0.18)]"
+            style={{ boxShadow: cardShadow }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full overflow-hidden">
+                <Avatar style={{ height: 56, width: 56 }} className="border-2 border-white shadow-sm">
+                  {contact.avatar_url ? (
+                    <AvatarImage src={contact.avatar_url} alt={contact.name} />
+                  ) : (
+                    <AvatarFallback className="bg-gray-100 text-gray-500">{contact.name?.split(' ').map((n,i)=> i<2 ? n[0] : '').join('').slice(0,2)}</AvatarFallback>
+                  )}
+                </Avatar>
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{contact.name}</h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{contact.status ?? 'novo'}</span>
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">{contact.phone ?? 'Sem telefone'}</div>
+                {contact.interests && <div className="text-sm text-muted-foreground mt-2"><span className="font-medium">Interesses:</span> {contact.interests}</div>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Modal */}
       {selected && (
-        <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) { setSelected(null); setDetails(null) } }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selected.name}</DialogTitle>
-              <DialogDescription>
-                Visualize a navegação (quando disponível) e os favoritos associados a este cliente.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div>
-                <h4 className="font-medium">Informações básicas</h4>
-                <div className="text-sm text-muted-foreground mt-2">
-                  <div><strong>Telefone:</strong> {selected.phone || '—'}</div>
-                  <div><strong>Origem:</strong> {selected.source || '—'}</div>
-                  <div><strong>Interesses:</strong> {selected.interests || '—'}</div>
-                  <div><strong>Status:</strong> {selected.status || '—'}</div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSelected(null)} />
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 z-10">
+            <div className="flex justify-between items-start gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full overflow-hidden">
+                    <Avatar style={{ height: 64, width: 64 }}>
+                    {selected.avatar_url ? <AvatarImage src={selected.avatar_url} alt={selected.name} /> : <AvatarFallback>{selected.name?.split(' ').map(n=>n[0]).slice(0,2).join('')}</AvatarFallback>}
+                  </Avatar>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{selected.name}</h3>
+                  <div className="text-sm text-muted-foreground">{selected.phone ?? 'Sem telefone'}</div>
                 </div>
               </div>
-
-              <div>
-                <h4 className="font-medium">Favoritos</h4>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {loading ? (
-                    <div>Carregando favoritos…</div>
-                  ) : details?.favorites && details.favorites.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                      {details.favorites.map((f: any) => (
-                        <li key={f.product_id}>{f.title || f.product_id}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div>Nenhum favorito encontrado.</div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium">Navegação</h4>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {loading ? (
-                    <div>Carregando navegação…</div>
-                  ) : details?.navigation && details.navigation.length > 0 ? (
-                    <ul className="list-decimal pl-5">
-                      {details.navigation.map((n: any, idx: number) => (
-                        <li key={idx}>{n.path} <span className="text-xs text-muted-foreground ml-2">{n.ts}</span></li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div>Navegação ainda não implementada.</div>
-                  )}
-                </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setSelected(null)}>Fechar</Button>
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setSelected(null); setDetails(null) }}>Fechar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Navegação (breve)</h4>
+                <div className="text-sm text-muted-foreground">Os registros de navegação desse cliente serão exibidos aqui (próxima etapa de implementação).</div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Favoritos</h4>
+                {favorites === null ? (
+                  <div className="text-sm text-muted-foreground">Carregando…</div>
+                ) : favorites.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">Nenhum favorito encontrado para esse perfil</div>
+                ) : (
+                  <ul className="space-y-2">
+                    {favorites.map((f:any) => (
+                      <li key={f.id} className="text-sm">{f.product_id || f.products?.title || f.id}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -159,6 +159,7 @@ export interface Database {
         Row: {
           id: string
           full_name: string | null
+          interests: string[] | null
           role: 'user' | 'adm'
           bio: string | null
           avatar_url: string | null
@@ -167,6 +168,7 @@ export interface Database {
         Insert: {
           id: string
           full_name?: string | null
+          interests?: string[] | null
           role?: 'user' | 'adm'
           bio?: string | null
           avatar_url?: string | null
@@ -175,6 +177,7 @@ export interface Database {
         Update: {
           id?: string
           full_name?: string | null
+          interests?: string[] | null
           role?: 'user' | 'adm'
           bio?: string | null
           avatar_url?: string | null

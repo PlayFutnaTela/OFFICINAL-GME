@@ -32,17 +32,10 @@ const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILES = 30
 const MAX_FILE_MB = 15
 
-// Available categories from the opportunities search system
-const AVAILABLE_CATEGORIES = [
-  'Carro',
-  'Imovel',
-  'Empresa',
-  'Premium',
-  'Eletronicos',
-  'Cartas Contempladas',
-  'Industrias',
-  'Embarcações'
-]
+// Categories centralised in src/lib/categories.ts
+import { SITE_CATEGORIES } from '@/lib/categories'
+// alias for existing code readability
+const AVAILABLE_CATEGORIES = SITE_CATEGORIES
 
 // Brazilian states for location selection
 const BRAZILIAN_STATES = [
