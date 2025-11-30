@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import AuthMonitor from '@/components/auth-monitor'
 
+import MobileNav from "@/components/mobile-nav";
+
 const inter = Inter({ subsets: ["latin"] });
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
@@ -27,6 +29,7 @@ export default function RootLayout({
                 <AuthMonitor />
                 {children}
                 <Toaster />
+                <MobileNav />
             </body>
         </html>
     );

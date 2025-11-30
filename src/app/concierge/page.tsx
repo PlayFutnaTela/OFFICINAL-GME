@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import ConciergeLayoutClient from './layout-client'
 import Sidebar from '@/components/sidebar'
 import Topbar from '@/components/topbar'
-import { ConciergeMobileMenu } from './components/mobile-menu'
+// import { ConciergeMobileMenu } from './components/mobile-menu' // Removed
 
 export default async function ConciergePage() {
     const supabase = createClient()
@@ -67,8 +67,8 @@ export default async function ConciergePage() {
                     />
                 </div>
 
-                {/* Mobile Menu */}
-                <ConciergeMobileMenu />
+                {/* Mobile Menu - Removed in favor of global MobileNav */}
+                {/* <ConciergeMobileMenu /> */}
             </main>
         </div>
     )
