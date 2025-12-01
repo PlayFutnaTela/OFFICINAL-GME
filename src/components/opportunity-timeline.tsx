@@ -5,6 +5,7 @@ import { Clock, User, CheckCircle, AlertCircle, TrendingUp, Info, HelpCircle } f
 import { getOpportunityLogs } from '@/actions/logs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
+import { useCallback } from 'react'
 
 type OpportunityLog = {
     id: string
@@ -24,10 +25,35 @@ interface OpportunityTimelineProps {
 export default function OpportunityTimeline({ opportunityId }: OpportunityTimelineProps) {
     const [logs, setLogs] = useState<OpportunityLog[]>([])
     const [loading, setLoading] = useState(true)
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [checkingAdmin, setCheckingAdmin] = useState(true)
+
+    // Verificar se o usuário é admin
+    useEffect(() => {
+        const checkAdminStatus = async () => {
+            try {
+                const response = await fetch('/api/auth/check-admin', { method: 'GET' })
+                const data = await response.json()
+                setIsAdmin(data.isAdmin || false)
+                console.log(`[opportunity-timeline] Usuário é admin: ${data.isAdmin}`)
+            } catch (error) {
+                console.error('[opportunity-timeline] Erro ao verificar admin status:', error)
+                setIsAdmin(false)
+            } finally {
+                setCheckingAdmin(false)
+            }
+        }
+        
+        checkAdminStatus()
+    }, [])
 
     useEffect(() => {
-        loadLogs()
-    }, [opportunityId])
+        if (isAdmin) {
+            loadLogs()
+        } else {
+            setLoading(false)
+        }
+    }, [opportunityId, isAdmin])
 
     const loadLogs = async () => {
         try {
@@ -85,7 +111,12 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
         })
     }
 
-    if (loading) {
+    // Não mostrar o card se o usuário não é admin
+    if (!isAdmin && !checkingAdmin) {
+        return null
+    }
+
+    if (loading || checkingAdmin) {
         return (
             <Card>
                 <CardHeader>
