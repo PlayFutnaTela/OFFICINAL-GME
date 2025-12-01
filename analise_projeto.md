@@ -34,6 +34,11 @@ O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para ges
 - **Framer Motion** — animações e transições (diversos componentes UI como `style/appmenu.tsx`, `style/efeito-sidebar.tsx` e outros).  
 - **@supabase/ssr / createBrowserClient** — utilização do cliente Supabase para browser/SSR (com atenção para uso em server-side - ver observações de build).
 
+### Ferramentas Adicionadas Recentemente (Sistema de Tarefas e Timeline)
+- **Server Actions** — implementadas para gerenciamento de tarefas de forma segura no servidor
+- **Supabase RLS Policies** — políticas de segurança em nível de linha para controle de acesso baseado em role (admin)
+- **Supabase RPC Functions** — funções PostgreSQL que ignoram RLS para leitura de logs administrativos
+
 ## Estrutura do Projeto
 
 O projeto está dividido em duas partes principais:
@@ -57,6 +62,20 @@ O projeto está dividido em duas partes principais:
 - Correções de tipagem e compatibilidade TypeScript em vários componentes para passar as checagens de tipo durante `next build` (ex.: `src/components/auth-monitor.tsx`, `src/components/ui/avatar.tsx`, `src/components/opportunities-store.tsx`, `src/components/product-list.tsx`).
 - Ajustes em componentes com Framer Motion para respeitar tipos e evitar erros de compilação (`style/appmenu.tsx`, `style/efeito-sidebar.tsx`).
 - Integração com shaders (react-three) tipada via `args` para o `shaderMaterial` (ex.: `style/shader1.tsx`) evitando erros de tipos durante build.
+
+### Correções do Sistema de Tarefas e Timeline (Novo)
+
+- **Remoção de `.single()` em queries Supabase** — Corrigido o método `.single()` que causava erro "Cannot coerce result to a single JSON object" quando retornava arrays. Implementado padrão de extração: `const data = Array.isArray(result) ? result[0] : result`.
+
+- **Codificação UTF-8** — Recodificado arquivo `src/actions/tasks.ts` para UTF-8 válido, removidos caracteres emoji e especiais problemáticos.
+
+- **RLS Policies para Timeline** — Implementadas políticas de Row Level Security para restringir leitura de logs apenas a usuários com role 'adm'.
+
+- **Função RPC com SECURITY DEFINER** — Criada função PostgreSQL `get_opportunity_logs()` que contorna RLS de forma segura, permitindo que admins leiam logs sem restrições.
+
+- **Verificação de Permissões Assíncrona** — Implementado endpoint `/api/auth/check-admin` e integração no componente `OpportunityTimeline` com handling correto de race conditions (retorna `null` durante verificação).
+
+- **Logging Detalhado** — Adicionados console.logs prefixados (ex.: `[functionName]`) em todas as operações de tarefas e logs para facilitar debugging em produção.
 
 ## Banco de Dados
 
@@ -90,6 +109,30 @@ O projeto está dividido em duas partes principais:
 - `contact_id`: UUID (referência para contacts, com delete cascade)
 - `content`: Texto (descrição da interação)
 - `created_at`: Timestamp com fuso horário
+
+#### 4. `tasks` (Tarefas) [NOVO]
+- `id`: UUID (chave primária)
+- `user_id`: UUID (referência para auth.users)
+- `opportunity_id`: UUID (referência para opportunities ou products, flexível)
+- `title`: Texto (título da tarefa)
+- `description`: Texto (descrição detalhada)
+- `status`: Texto (valores: 'novo', 'em_progresso', 'concluida', 'atrasada')
+- `priority`: Texto (valores opcionais: 'baixa', 'média', 'alta')
+- `due_date`: Timestamp (data de vencimento)
+- `created_at`: Timestamp com fuso horário
+- `updated_at`: Timestamp com fuso horário
+
+#### 5. `opportunity_logs` (Registro de Atividades) [NOVO]
+- `id`: UUID (chave primária)
+- `opportunity_id`: UUID (referência para opportunities)
+- `user_id`: UUID (referência para auth.users)
+- `message`: Texto (descrição da atividade)
+- `created_at`: Timestamp com fuso horário
+
+**RLS Policies:**
+- Leitura restrita a usuários com role 'adm' (verificado via função `public.is_admin()`)
+- Criação de logs permitida para todas operações do sistema
+- Função RPC `get_opportunity_logs(p_opportunity_id UUID)` com SECURITY DEFINER para contorno seguro de RLS
 
 ## Segurança e Permissões
 
@@ -171,6 +214,19 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Integração com WhatsApp para compartilhamento de oportunidades
 - Google Charts para visualização de dados
 - Supabase Auth para autenticação
+
+### 9. Sistema de Tarefas e Timeline (Novo)
+- Gestão de tarefas associadas a oportunidades/produtos:
+  - Criação, edição e exclusão de tarefas
+  - Atribuição de status (novo, em progresso, concluída, atrasada)
+  - Rastreamento automático de mudanças de status
+- Timeline de atividades (Linha do Tempo):
+  - Registro automático de eventos: criação de tarefas, conclusão de tarefas, remoção de tarefas, alterações de status
+  - Visibilidade restrita a usuários com role 'adm' (administrador)
+  - Tooltips informativos explicando quais atividades são registradas
+  - Timestamps com formatação de tempo relativo (minutos, horas, dias)
+- Logging centralizado via Server Actions com tratamento de erros robusto
+- API endpoint `/api/auth/check-admin` para verificação assíncrona de permissões
 
 ### Observações de Build / Deploy (Vercel)
 
@@ -256,6 +312,63 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - `NEXT_PUBLIC_SUPABASE_URL` - URL do projeto Supabase
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Chave anônima do Supabase
 
+### Arquivos Modificados e Criados Recentemente (Sistema de Tarefas)
+
+#### Server Actions (`src/actions/`)
+- **`tasks.ts`** (337 linhas) - Operações CRUD para tarefas
+  - `getTasks(opportunity_id)` - Buscar tarefas de uma oportunidade/produto
+  - `getAllTasks()` - Listar todas as tarefas do usuário ou todas se admin
+  - `createTask()` - Criar nova tarefa e registrar no log
+  - `updateTask()` - Atualizar dados da tarefa
+  - `updateTaskStatus()` - Atualizar status e criar log de conclusão
+  - `deleteTask()` - Deletar tarefa e registrar no log
+  - `getTasksWithOpportunities()` - Listar tarefas com dados relacionados
+
+- **`logs.ts`** (125 linhas) - Gerenciamento de logs de atividades
+  - `createLog(opportunity_id, message)` - Criar registro de atividade
+  - `getOpportunityLogs(opportunity_id)` - Buscar logs de uma oportunidade (admin only)
+  - `getRecentLogs(limit)` - Buscar logs recentes (admin only)
+  - Implementação com RPC fallback para tratamento de RLS
+
+#### Componentes (`src/components/`)
+- **`opportunity-timeline.tsx`** (248 linhas) - [NOVO] Linha do tempo de atividades
+  - Exibe registro de criação, conclusão e remoção de tarefas
+  - Restrito a usuários com role 'adm'
+  - Tooltip explicativo com ícone de ajuda
+  - Timestamps com formatação relativa (minutos, horas, dias)
+  - Ícones diferenciados por tipo de atividade
+  - Verificação assíncrona de permissões sem race conditions
+
+- **`task-form.tsx`** - [NOVO] Formulário para criar/editar tarefas
+  - Campos: título, descrição, status, prioridade, data de vencimento
+  - Validação de dados
+  - Integração com Server Actions
+
+- **`task-list.tsx`** - [NOVO] Lista de tarefas
+  - Exibição de tarefas por oportunidade
+  - Filtros por status
+  - Ações: editar, deletar, mudar status
+
+- **`task-status-dropdown.tsx`** - [NOVO] Seletor de status de tarefa
+  - Dropdown com opções de status
+  - Integração com `updateTaskStatus()`
+
+#### API Routes (`src/app/api/`)
+- **`auth/check-admin/route.ts`** (29 linhas) - [NOVO] Endpoint para verificar role
+  - GET `/api/auth/check-admin`
+  - Retorna `{ isAdmin: boolean }`
+  - Consulta role do usuário na tabela `profiles`
+
+#### Migrations SQL (`backend/migrations/`)
+- **`rls_admins_only.sql`** - Políticas RLS para logs
+  - Policy de leitura: apenas admins podem ler logs
+  - Policy de criação: sistema pode criar logs livremente
+
+- **`create_get_logs_function.sql`** - Função RPC para contorno seguro de RLS
+  - `get_opportunity_logs(p_opportunity_id UUID)`
+  - SECURITY DEFINER para bypass de RLS
+  - Retorna logs com nomes de usuários via LEFT JOIN
+
 ### Scripts Disponíveis
 - `npm run dev` - Iniciar servidor de desenvolvimento
 - `npm run build` - Criar build de produção
@@ -271,15 +384,19 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Dashboard completo com múltiplas visualizações
 - Integração com serviços externos (Supabase, WhatsApp)
 - Tipagem estática com TypeScript
+- **[NOVO]** Sistema de tarefas com logging automático de atividades
+- **[NOVO]** Timeline administrativo com registro detalhado de operações
+- **[NOVO]** Controle de acesso baseado em roles com verificação assíncrona
 
 ### Melhorias Potenciais
-- Implementação de testes unitários e de integração
-- Adição de funcionalidades de notificação
-- Sistema de relatórios mais avançado com exportação
-- Integração com calendário para agendamentos
-- Funcionalidades de colaboração para equipes
-- Sistema de permissões mais granular
-- Histórico de alterações detalhado
+- Implementação de testes unitários e de integração para Server Actions
+- Adição de funcionalidades de notificação em tempo real para mudanças de tarefas
+- Sistema de relatórios mais avançado com exportação de logs de atividades
+- Integração com calendário para agendamentos de tarefas
+- Funcionalidades de colaboração para equipes (atribuição de tarefas a outros usuários)
+- Filtros avançados na timeline (por tipo de atividade, data, usuário)
+- Exportação de timeline como PDF/CSV para auditoria
+- Sistema de permissões mais granular além de admin/não-admin
 
 ### Escalabilidade
 - O sistema está bem estruturado para escalar horizontalmente

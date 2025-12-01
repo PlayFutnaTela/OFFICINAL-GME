@@ -111,12 +111,17 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
         })
     }
 
-    // Não mostrar o card se o usuário não é admin
-    if (!isAdmin && !checkingAdmin) {
+    // Não mostrar NADA enquanto estamos verificando se é admin
+    if (checkingAdmin) {
         return null
     }
 
-    if (loading || checkingAdmin) {
+    // Não mostrar o card se o usuário não é admin
+    if (!isAdmin) {
+        return null
+    }
+
+    if (loading) {
         return (
             <Card>
                 <CardHeader>
