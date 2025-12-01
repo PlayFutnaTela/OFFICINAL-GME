@@ -113,6 +113,15 @@ export default async function Sidebar() {
           )}
           {isAdmin && (
             <Link
+              href="/admin/convites"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/70 transition-all hover:text-white hover:bg-navy-600"
+            >
+              <Users className="h-4 w-4 text-gold-300" />
+              Convites
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
               href="/concierge"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/70 transition-all hover:text-white hover:bg-navy-600"
             >

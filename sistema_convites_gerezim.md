@@ -18,7 +18,9 @@ Este documento descreve todo o sistema de **convites privados** da plataforma GE
 - SQL completo para criação das tabelas  
 - Endpoints necessários  
 
-O objetivo é permitir que **somente pessoas autorizadas** acessem a plataforma, mantendo um nível de exclusividade condizente com produtos high-ticket.
+**Contexto:** GEREZIM é uma plataforma **exclusiva de compra de oportunidades premium**. Somente a GEREZIM vende produtos/oportunidades. Os usuários (compradores) precisam de um código de convite para acessar e visualizar as oportunidades disponíveis, mantendo um nível de exclusividade condizente com produtos high-ticket.
+
+**Importante:** Usuários logados NÃO têm acesso a `/dashboard`. Eles acessam diretamente as páginas de produtos/oportunidades e podem gerenciar seus próprios dados (perfil, favoritos, contatos, etc).
 
 ---
 
@@ -36,7 +38,6 @@ create table public.invites (
   used_at timestamp with time zone,
   status text not null default 'unused', -- unused | used | disabled
   notes text,
-  expires_at timestamp with time zone,
   max_uses integer default 1,
   times_used integer default 0,
   category text, -- 'premium', 'standard', 'vip', etc
@@ -47,13 +48,19 @@ create table public.invites (
 alter table public.invites enable row level security;
 ```
 
-**Campos Adicionados:**
-- `expires_at`: Validade do código (automático com expiração)
+**Campos:**
+- `status`: 'unused' (disponível) | 'used' (foi utilizado, indisponível) | 'disabled' (admin desabilitou)
 - `max_uses`: Quantas vezes o código pode ser usado (1 = single-use, NULL = ilimitado)
 - `times_used`: Contador de quantas vezes foi utilizado
 - `category`: Classificação do convite (premium, standard, vip, etc)
 - `metadata`: Dados flexíveis (tags, source, campanha, etc)
 - `referral_user_id`: Para rastrear quem gerou via referência
+
+**Importante:** A validade do código é determinada APENAS pelo campo `status`:
+- `status = 'unused'` → Disponível para usar
+- `status = 'used'` → Indisponível (já foi utilizado)
+- `status = 'disabled'` → Admin desabilitou
+- Sem coluna `expires_at` — tokens não expiram por tempo
 
 ### RLS Sugerido:
 
@@ -82,8 +89,7 @@ create table public.pending_members (
   status text default 'pending', -- pending | approved | rejected
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamp with time zone,
-  rejection_reason text,
-  access_tier text default 'standard' -- tier de acesso a conceder
+  rejection_reason text
 );
 
 alter table public.pending_members enable row level security;
@@ -94,7 +100,6 @@ alter table public.pending_members enable row level security;
 - `reviewed_by`: Quem aprovou/rejeitou
 - `reviewed_at`: Quando foi revisado
 - `rejection_reason`: Motivo da rejeição (para feedback)
-- `access_tier`: Nível de acesso a conceder quando aprovado
 
 ### RLS:
 
@@ -117,44 +122,18 @@ using ( public.is_admin(auth.uid()) );
 
 ---
 
-## 2.3 Tabela `access_levels` (Novo)
-Define os tiers de acesso com permissões específicas:
-
-```sql
-create table public.access_levels (
-  id text primary key, -- 'bronze', 'silver', 'gold', 'platinum'
-  name text not null,
-  description text,
-  max_opportunities integer,
-  max_products integer,
-  max_tasks integer,
-  features jsonb, -- {'analytics': true, 'export': true, ...}
-  monthly_price numeric,
-  created_at timestamp with time zone default now()
-);
-
-alter table public.access_levels enable row level security;
-
--- Inserts iniciais
-insert into access_levels (id, name, description, max_opportunities, max_products, max_tasks, features)
-values
-  ('bronze', 'Bronze', 'Acesso Padrão', 10, 50, 100, '{"analytics": false, "export": false, "api": false}'::jsonb),
-  ('silver', 'Silver', 'Acesso Profissional', 50, 250, 500, '{"analytics": true, "export": true, "api": false}'::jsonb),
-  ('gold', 'Gold', 'Acesso Premium', 500, NULL, NULL, '{"analytics": true, "export": true, "api": true, "priority_support": true}'::jsonb),
-  ('platinum', 'Platinum', 'Acesso VIP', NULL, NULL, NULL, '{"analytics": true, "export": true, "api": true, "priority_support": true, "dedicated_manager": true}'::jsonb);
-```
-
 ---
 
 ## 2.4 Alteração na tabela `profiles`
 
 ```sql
 alter table public.profiles
-add column access_tier text default 'standard' references access_levels(id),
 add column joined_by_invite text,
 add column joined_via_referral_from uuid references auth.users(id),
 add column joined_date timestamp with time zone default now();
 ```
+
+**Nota:** O role do comprador será sempre `user` (definido em `auth.users.role`). Todos os compradores aprovados via convite recebem este role.
 
 ---
 
@@ -187,8 +166,8 @@ create index idx_audit_logs_created_at on audit_logs(created_at);
 
 # 3. Fluxo Completo de Convites
 
-## 3.1 Admin gera código(s)
-- Admin escolhe quantidade, validade e tags.
+## 3.1 Admin (GEREZIM) gera código(s)
+- Admin escolhe quantidade, validade e tier de acesso.
 - São gerados códigos únicos como:
 
 ```
@@ -199,45 +178,305 @@ GZM-PREMIUM-44D
 
 - Entram na tabela `invites`.
 
-## 3.2 Usuário acessa a página privada `/acesso`
-- Ele digita o código.
+## 3.2 Comprador recebe o convite
+- Recebe via email, WhatsApp, SMS ou link privado
+- Código válido por período determinado
+
+## 3.3 Comprador acessa a página pública `/acesso`
+- Digita o código de convite
 - O sistema valida:
   - Se existe  
   - Se não está usado  
   - Se não está desabilitado  
+  - Se não expirou
 
-## 3.3 Se valido → formulário de aplicação
+## 3.4 Se válido → formulário de aplicação
 Coleta:
-
 - Nome  
 - Telefone  
 - Email  
-- Interesses  
+- Interesse(s) em categorias (carros, imóveis, empresas, itens premium)
 - Informações adicionais  
 
 Salva em `pending_members`.
 
-## 3.4 Admin recebe notificação (opcional)
-Via Make/Zapier/WhatsApp.
+## 3.5 Admin (GEREZIM) recebe notificação
+Via Make/Zapier/WhatsApp/Discord.
 
-## 3.5 Admin aprova ou rejeita
+## 3.6 Admin aprova ou rejeita
 ### Se aprova:
 1. Cria usuário no Supabase Auth  
 2. Cria um perfil em `profiles`  
 3. Atualiza `pending_members` → approved  
 4. Marca invite como usado  
+5. Envia email de boas-vindas
 
-### Se recusa:
+### Se rejeita:
 - `pending_members.status = 'rejected'`
+- Envia email informando rejeição
+
+## 3.7 Comprador aprovado acessa as oportunidades
+- Faz login com email e senha
+- Redefine senha (primeiro acesso)
+- Acessa `/oportunidades` ou `/produtos` ou `/categorias`
+- VÊ APENAS as oportunidades que GEREZIM está vendendo
+- Pode favoritar, compartilhar, consultar detalhes
+- **NÃO pode criar oportunidades** (Gerezim vende, ele compra)
 
 ---
 
-# 4. Páginas e Componentes (Next.js)
+# 3.8 Fluxo Completo do Usuário (Do Zero ao Acesso)
 
-## 4.1 Página `/acesso`
-- Input para o código
-- Validação
+## Timeline Visual
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 1: CONVITE (T0 → T+1 dia)                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│ Admin gera código → Envia via Email/WhatsApp → Usuário recebe      │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 2: VALIDAÇÃO DO CÓDIGO (T+1 dia → T+5 min)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│ 1. Usuário acessa /acesso                                           │
+│ 2. Cola código: GZM-A9KQ12                                          │
+│ 3. Sistema valida:                                                  │
+│    ✓ Existe na tabela invites?                                      │
+│    ✓ Status = 'unused'?                                             │
+│    ✓ Não ultrapassou max_uses?                                      │
+│ 4. Se válido → Redireciona para /acesso/aplicar/GZM-A9KQ12        │
+│    Se inválido → Mostra erro                                        │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 3: FORMULÁRIO DE APLICAÇÃO (T+5 min → T+10 min)              │
+├─────────────────────────────────────────────────────────────────────┤
+│ Usuário preenche:                                                   │
+│ • Nome completo                                                     │
+│ • Telefone (WhatsApp)                                               │
+│ • Email (principal para login)                                      │
+│ • Interesse(s) em categorias (carros, imóveis, empresas, etc)      │
+│ • Informações adicionais                                            │
+│                                                                      │
+│ Server Action: createPendingMember()                                │
+│ • Valida email não está em auth.users                               │
+│ • Insere em pending_members com status='pending'                    │
+│ • Incrementa times_used no invite                                   │
+│ • Envia webhook ao admin (Make/Zapier)                              │
+│ • Cria audit log                                                    │
+│                                                                      │
+│ BD APÓS: pending_members = 1 registro em 'pending'                  │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 4: NOTIFICAÇÃO AO ADMIN (T+10 min)                           │
+├─────────────────────────────────────────────────────────────────────┤
+│ Webhook enviado contém:                                             │
+│ {                                                                   │
+│   "type": "new_pending_member",                                     │
+│   "data": {                                                         │
+│     "name": "João Silva",                                           │
+│     "email": "joao@example.com",                                    │
+│     "phone": "+55 11 99999-9999",                                   │
+│     "interests": ["carros", "imóveis"],                             │
+│     "code": "GZM-A9KQ12"                                            │
+│   }                                                                 │
+│ }                                                                   │
+│                                                                      │
+│ Admin recebe notificação via:                                       │
+│ • Discord/Slack (Make)                                              │
+│ • WhatsApp (Zapier)                                                 │
+│ • Email automático                                                  │
+│                                                                      │
+│ → Admin acessa /admin/convites para revisar                         │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 5: REVISÃO E APROVAÇÃO (T+10 min → T+2 horas)                │
+├─────────────────────────────────────────────────────────────────────┤
+│ Admin acessa /admin/convites e vê:                                  │
+│ • 1 candidato pendente: João Silva (joao@example.com)              │
+│                                                                      │
+│ Admin clica em "Aprovar Comprador"                                  │
+│ Server Action: approveMember(candidato_id)                          │
+│                                                                      │
+│ Sistema executa transação:                                          │
+│ 1. Gera senha temporária (ex: aB3dE9kL2x)                          │
+│ 2. Cria auth.users com:                                             │
+│    • email: joao@example.com                                        │
+│    • password: aB3dE9kL2x (temporária)                              │
+│    • role: 'user' (comprador)                                       │
+│    • email_confirmed: true                                          │
+│ 3. Cria profile com:                                                │
+│    • id: uuid_do_usuario                                            │
+│    • name: João Silva                                               │
+│    • phone: +55 11 99999-9999                                       │
+│    • joined_by_invite: GZM-A9KQ12                                   │
+│    • joined_date: agora                                             │
+│ 4. Atualiza pending_members:                                        │
+│    • status: 'approved'                                             │
+│    • reviewed_by: admin_id                                          │
+│    • reviewed_at: agora                                             │
+│ 5. Marca invite como usado:                                         │
+│    • status: 'used'                                                 │
+│    • used_by: usuario_id                                            │
+│    • used_at: agora                                                 │
+│ 6. Envia email de boas-vindas:                                      │
+│    Assunto: "Bem-vindo à GEREZIM!"                                  │
+│    Corpo: Explica exclusividade, instruções de login, reset senha   │
+│ 7. Cria audit log detalhado                                         │
+│                                                                      │
+│ BD APÓS:                                                            │
+│ • auth.users: 1 novo usuário (role=user)                            │
+│ • profiles: 1 novo perfil                                           │
+│ • pending_members.status: approved                                  │
+│ • invites.status: used                                              │
+│ • audit_logs: 1 registro                                            │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 6: PRIMEIRO ACESSO (T+2 horas → T+2h 5min)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│ Usuário clica em link do email ou acessa app                        │
+│ Login em /login:                                                    │
+│ • Email: joao@example.com                                           │
+│ • Senha (temporária): aB3dE9kL2x                                    │
+│                                                                      │
+│ Supabase Auth valida credenciais                                    │
+│ → Token JWT gerado com claims:                                      │
+│   {                                                                 │
+│     "sub": "uuid_usuario",                                          │
+│     "role": "user",                                                 │
+│     "email": "joao@example.com",                                    │
+│     "email_verified": true                                          │
+│   }                                                                 │
+│                                                                      │
+│ App detecta que é primeiro acesso (senha temporária)                │
+│ → Redireciona para /reset-password                                  │
+│ → Usuário define senha permanente                                   │
+│                                                                      │
+│ DB APÓS:                                                            │
+│ • auth.users.encrypted_password: nova senha                         │
+└─────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ FASE 7: ACESSO À PLATAFORMA (T+2h 5min →∞)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│ Usuário agora pode:                                                 │
+│                                                                      │
+│ ✅ Acessar /oportunidades                                            │
+│    • VÊ catálogo de oportunidades criadas por GEREZIM              │
+│    • Filtra por categoria (carros, imóveis, empresas)              │
+│    • Clica em detalhes de cada oportunidade                        │
+│                                                                      │
+│ ✅ Acessar /produtos                                                 │
+│    • VÊ lista de produtos premium                                   │
+│    • Preços e disponibilidade                                      │
+│                                                                      │
+│ ✅ Acessar /categorias                                               │
+│    • Navega por segmentos de negócio                               │
+│                                                                      │
+│ ✅ Acessar /perfil                                                   │
+│    • Edita dados pessoais (nome, telefone)                         │
+│    • Não vê dados de admin (roles, permissões)                     │
+│                                                                      │
+│ ✅ Acessar /favoritos                                                │
+│    • VÊ oportunidades que favoritou                                │
+│    • Gerencia lista de interesses                                  │
+│                                                                      │
+│ ✅ Acessar /contatos                                                 │
+│    • VÊ histórico de interações                                    │
+│    • Dados de contato de representantes GEREZIM                    │
+│                                                                      │
+│ ❌ NÃO pode:                                                         │
+│    • Acessar /dashboard (só admin pode)                            │
+│    • Criar oportunidades (só GEREZIM vende)                        │
+│    • Acessar /admin/* (só admin)                                   │
+│    • Ver dados de outros usuários                                  │
+│                                                                      │
+│ 🔐 RLS Policies garantem:                                           │
+│    • Vê apenas dados públicos de oportunidades GEREZIM             │
+│    • Vê apenas seu perfil                                          │
+│    • Vê apenas seus favoritos/contatos/interações                  │
+│    • Admin vê tudo, comprador vê apenas seu próprio                │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## Resumo das Mudanças no BD
+
+### T0: Nada existe para este usuário
+```
+auth.users: vazio
+profiles: vazio
+pending_members: vazio
+invites: tem GZM-A9KQ12 (status=unused, times_used=0)
+```
+
+### T+10min: Formulário preenchido
+```
+auth.users: vazio (ainda não criado)
+profiles: vazio
+pending_members: João Silva (status=pending, email=joao@example.com)
+invites: GZM-A9KQ12 (status=unused, times_used=1) ← incrementou
+audit_logs: "pending_member_created"
+```
+
+### T+2h: Aprovado
+```
+auth.users: João Silva (role=user, email=joao@example.com)
+profiles: João Silva (joined_by_invite=GZM-A9KQ12)
+pending_members: João Silva (status=approved, reviewed_by=admin_id)
+invites: GZM-A9KQ12 (status=used, used_by=joao_uuid, used_at=T+2h)
+audit_logs: "member_approved" (with before/after)
+```
+
+### T+2h 5min: Senha redefinida
+```
+auth.users: João Silva (password hash atualizado)
+(resto igual)
+```
+
+## Timeline de Tempo Real
+
+| Ação | Tempo | Duração |
+|------|-------|---------|
+| Admin gera convite | T+0 | - |
+| Usuário recebe email/WhatsApp | T+0:30 | 30 min |
+| Usuário acessa /acesso | T+1:00 | - |
+| Usuário preenche formulário | T+1:00 até T+1:05 | 5 min |
+| Webhook enviado ao admin | T+1:05 | - |
+| Admin notificado | T+1:10 | 5 min depois |
+| Admin revisa e aprova | T+1:30 | 25 min depois (até aqui) |
+| Usuário recebe email de aprovação | T+1:31 | 1 min depois |
+| Usuário faz login | T+2:00 | 29 min depois |
+| Usuário redefine senha | T+2:05 | 5 min de login |
+| **ACESSO TOTAL À PLATAFORMA** | T+2:05 | **~2h 5min do início** |
+
+## Decisões por Usuário
+
+### ✅ Se Admin aprova:
+- ✅ Email de boas-vindas enviado
+- ✅ Pode fazer login
+- ✅ Pode acessar /oportunidades, /perfil, /favoritos, etc
+- ✅ Aparece em relatórios como "Comprador Aprovado"
+
+### ❌ Se Admin rejeita:
+- Server Action: rejectMember(id, reason)
+- pending_members.status = rejected
+- pending_members.rejection_reason = "Motivo da rejeição"
+- Email de rejeição enviado: "Sua inscrição foi revisada. Infelizmente, não conseguimos prosseguir neste momento."
+- Usuário NÃO é criado em auth.users
+- NÃO tem acesso à plataforma
+- Pode tentar com outro código
+
+---
+
+## 4.1 Página `/acesso` (Pública)
+- Input para código de convite
+- Validação em tempo real
 - Estilo premium (preto + dourado)
+- Mensagem explicativa sobre exclusividade
 
 ### Estrutura:
 
@@ -248,21 +487,34 @@ Via Make/Zapier/WhatsApp.
 
 ---
 
-## 4.2 Página `/acesso/aplicar/[code]`
-- Formulário de aplicação.
-- Envia para Server Action.
+## 4.2 Página `/acesso/aplicar/[code]` (Pública)
+- Formulário de aplicação para potencial comprador
+- Coleta dados do interessado
+- Envia para Server Action
 
 ---
 
-## 4.3 Página Admin `/admin/convites`
+## 4.3 Página Admin `/admin/convites` (Privada - Admin Only)
 Módulos:
 
-### ✔ Gerar Convite  
+### ✔ Gerar Convites  
 ### ✔ Listar Convites  
 ### ✔ Desabilitar Código  
 ### ✔ Ver quem usou  
-### ✔ Aplicações pendentes  
-### ✔ Aprovar / Rejeitar  
+### ✔ Aplicações pendentes (com ação necessária)
+### ✔ Aprovar / Rejeitar candidatos  
+
+---
+
+## 4.4 Páginas do Comprador Logado
+
+As páginas já existentes (`/oportunidades`, `/perfil`, `/favoritos`, `/contatos`, etc.) funcionam naturalmente para compradores logados via convite. Nenhuma página nova precisa ser criada.
+
+**Comportamento automático:**
+- Comprador logado acessa `/oportunidades` e vê catálogo da GEREZIM
+- Acessa `/perfil` para gerenciar dados pessoais
+- Acessa `/favoritos` para oportunidades favoritadas
+- (Comportamento idêntico aos usuários já logados, sem diferenciação)  
 
 ---
 
@@ -295,24 +547,10 @@ export async function createInvites(data) {
 
 ---
 
-## 5.2 Validar código (Com Rate Limiting)
+## 5.2 Validar código (Sem Rate Limiting por enquanto)
 
 ```ts
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(5, "15 m"), // 5 tentativas por 15 min
-});
-
 export async function validateInvite(code: string, ip: string) {
-  // Rate limiting
-  const { success } = await ratelimit.limit(`invite-${ip}`);
-  if (!success) {
-    throw new Error("Muitas tentativas. Tente novamente em 15 minutos.");
-  }
-
   const supabase = createClient();
 
   const { data, error } = await supabase
@@ -325,11 +563,6 @@ export async function validateInvite(code: string, ip: string) {
 
   const invite = data[0];
 
-  // Validar expiração
-  if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-    return { valid: false, error: "Código expirou" };
-  }
-
   // Validar max_uses
   if (invite.max_uses && invite.times_used >= invite.max_uses) {
     return { valid: false, error: "Código já foi utilizado" };
@@ -339,9 +572,9 @@ export async function validateInvite(code: string, ip: string) {
 }
 ```
 
-**Melhorias:**
-- Rate limiting por IP (5 tentativas/15 min)
-- Validação de expiração
+**Características:**
+- Validação de existência do código
+- Validação de status (deve ser 'unused')
 - Validação de max_uses
 - Mensagens de erro específicas
 
@@ -467,9 +700,6 @@ export async function approveMember(id: string, adminId: string) {
     throw new Error(`Erro ao criar usuário: ${authError?.message}`);
   }
 
-  // Obter access_tier do pending_member ou usar default
-  const accessTier = candidate.access_tier || "standard";
-
   // Criar profile
   const { error: profileError } = await supabase
     .from("profiles")
@@ -477,7 +707,6 @@ export async function approveMember(id: string, adminId: string) {
       id: newUser.user.id,
       name: candidate.name,
       phone: candidate.phone,
-      access_tier: accessTier,
       joined_by_invite: candidate.invite_code,
       joined_date: new Date(),
     });
@@ -517,7 +746,6 @@ export async function approveMember(id: string, adminId: string) {
       name: candidate.name,
       tempPassword,
       resetLink: `${process.env.NEXT_PUBLIC_URL}/reset-password?token=...`,
-      accessTier,
       exclusivityMessage: true,
     });
   } catch (emailError) {
@@ -533,7 +761,7 @@ export async function approveMember(id: string, adminId: string) {
     target_type: "user",
     changes: {
       before: { status: "pending" },
-      after: { status: "approved", access_tier: accessTier },
+      after: { status: "approved", role: "user" },
     },
   });
 
@@ -586,22 +814,16 @@ Implementado na `createPendingMember()` — webhook automático quando novo cand
 
 ## 6.2 Expiração automática de códigos
 
-Cron job (Supabase Edge Functions ou externa):
+**Não é necessário** — A validade é controlada apenas pelo campo `status`:
 
 ```sql
--- Desabilitar códigos expirados
+-- Admin pode desabilitar um código manualmente
 update invites
 set status = 'disabled'
-where expires_at < now()
-and status = 'unused';
-
--- Desabilitar códigos antigos (30 dias)
-update invites
-set status = 'disabled'
-where created_at < now() - interval '30 days'
-and status = 'unused'
-and expires_at is null;
+where id = 'uuid-aqui';
 ```
+
+Sem cron job de expiração por tempo.
 
 ---
 
@@ -664,7 +886,7 @@ export async function rejectMember(
 
 ---
 
-# 7. UI Premium (Sugestão)
+## 7. UI Premium (Sugestão)
 
 - Fundo preto profundo
 - Dourado #C6A667 muito suave
@@ -673,6 +895,81 @@ export async function rejectMember(
 - Ícones minimalistas lucide-react
 
 ## 7.1 Dashboard Admin (`/admin/convites`)
+
+Exibe métricas e gerenciamento de convites e candidatos.
+
+### Seção 0: Configuração do Webhook
+
+```tsx
+<Card className="mb-8 border-yellow-600 bg-yellow-50">
+  <CardHeader>
+    <CardTitle className="text-yellow-900">⚙️ Configuração do Webhook</CardTitle>
+    <CardDescription className="text-yellow-800">
+      Configure o URL webhook para receber notificações quando novos candidatos se registram
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-4">
+      <div>
+        <label className="text-sm font-semibold">URL do Webhook</label>
+        <p className="text-xs text-gray-600 mb-2">
+          Exemplos: 
+          <br />• Discord: https://discord.com/api/webhooks/123456/xyzabc
+          <br />• Make: https://hook.make.com/asdf123asdf123asdf123
+          <br />• Zapier: https://hooks.zapier.com/hooks/catch/xxxxx/xxxxx/
+        </p>
+        <Input
+          placeholder="Cole o URL do seu webhook aqui (Discord, Make, Zapier, etc)"
+          value={webhookUrl}
+          onChange={(e) => setWebhookUrl(e.target.value)}
+          className="font-mono text-sm"
+        />
+        <p className="text-xs text-gray-500 mt-2">
+          💡 Dica: O webhook recebe POST quando um candidato preenche o formulário em /acesso/aplicar/[code]
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button 
+          onClick={() => saveWebhookUrl(webhookUrl)}
+          variant="default"
+        >
+          Salvar Configuração
+        </Button>
+        <Button 
+          onClick={() => testWebhookUrl(webhookUrl)}
+          variant="outline"
+        >
+          Testar Webhook
+        </Button>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+**O que este campo faz:**
+- ✅ Armazena o URL do webhook (em `.env.local` ou BD)
+- ✅ Permite testar a conexão com um teste POST
+- ✅ Mostra exemplos de URLs válidos (Discord, Make, Zapier)
+- ✅ Explica que o webhook recebe dados quando candidatos se registram
+
+**Dados enviados no webhook:**
+```json
+{
+  "type": "new_pending_member",
+  "data": {
+    "id": "uuid-candidato",
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "phone": "+55 11 99999-9999",
+    "code": "GZM-A9KQ12",
+    "timestamp": "2024-12-01T10:30:00Z",
+    "ip_address": "192.168.1.100"
+  }
+}
+```
+
+---
 
 ### Seção 1: Métricas
 ```tsx
@@ -696,7 +993,7 @@ export async function rejectMember(
     alert={pendingCount > 0}
   />
   <MetricCard
-    label="Membros Aprovados"
+    label="Compradores Aprovados"
     value={approvedCount}
     icon={<Users />}
   />
@@ -707,7 +1004,7 @@ export async function rejectMember(
 ```tsx
 <Card>
   <CardHeader>
-    <CardTitle>Gerar Convites</CardTitle>
+    <CardTitle>Gerar Convites para Compradores</CardTitle>
   </CardHeader>
   <CardContent>
     <form onSubmit={handleGenerateInvites} className="space-y-4">
@@ -720,38 +1017,29 @@ export async function rejectMember(
           defaultValue={10}
         />
         <Select
-          label="Categoria"
+          label="Categoria do Comprador"
           options={[
-            { value: "standard", label: "Padrão" },
+            { value: "geral", label: "Geral" },
             { value: "premium", label: "Premium" },
             { value: "vip", label: "VIP" },
           ]}
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Input label="Válido até" type="date" />
-        <Select
-          label="Acesso (Tier)"
-          options={[
-            { value: "bronze", label: "Bronze" },
-            { value: "silver", label: "Silver" },
-            { value: "gold", label: "Gold" },
-            { value: "platinum", label: "Platinum" },
-          ]}
-        />
+      <div className="grid grid-cols-1 gap-4">
+        <Input label="Válido até" type="date />
       </div>
-      <Textarea label="Notas" placeholder="Ex: Campanha de Natal" />
+      <Textarea label="Notas" placeholder="Ex: Convites para parceiros estratégicos" />
       <Button type="submit">Gerar Convites</Button>
     </form>
   </CardContent>
 </Card>
 ```
 
-### Seção 3: Candidatos Pendentes
+### Seção 3: Candidatos Pendentes de Aprovação
 ```tsx
 <Card>
   <CardHeader>
-    <CardTitle>Aprovações Pendentes ({pendingCount})</CardTitle>
+    <CardTitle>Aprovações Pendentes de Compradores ({pendingCount})</CardTitle>
   </CardHeader>
   <CardContent>
     <div className="space-y-4">
@@ -764,13 +1052,14 @@ export async function rejectMember(
             <p className="font-semibold">{member.name}</p>
             <p className="text-sm text-gray-600">{member.email}</p>
             <p className="text-xs text-gray-500">Código: {member.invite_code}</p>
+            <p className="text-xs text-gray-500">Interesse(s): {member.interests?.join(", ")}</p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="success"
               onClick={() => approveMember(member.id)}
             >
-              Aprovar
+              Aprovar Comprador
             </Button>
             <Button
               variant="outline"
@@ -788,29 +1077,76 @@ export async function rejectMember(
 
 ---
 
-## 7.2 Sistema de Referência (Bonus)
-
-Usuários aprovados podem convidar outros e ganhar rewards:
+## 7.2 Página `/acesso` (Para Potencial Comprador)
 
 ```tsx
-// Na seção do usuário logado
+<div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+  <div className="max-w-md w-full">
+    <div className="text-center mb-8">
+      <h1 className="text-3xl font-bold mb-2">GEREZIM</h1>
+      <p className="text-gray-400">Oportunidades Premium de Negócios</p>
+    </div>
+
+    <Card className="bg-gray-900 border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-white">Você tem um convite?</CardTitle>
+        <CardDescription className="text-gray-400">
+          Digite seu código exclusivo para acessar oportunidades de negócios premium
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            placeholder="GZM-XXXXX"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+            className="bg-gray-800 border-gray-700 text-white"
+          />
+          <Button className="w-full bg-gold-600 hover:bg-gold-700">
+            Continuar
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+
+    <p className="text-center text-gray-500 text-sm mt-8">
+      Você não tem convite? Contate nossos parceiros para obter um.
+    </p>
+  </div>
+</div>
+```
+
+---
+
+## 7.3 Página `/oportunidades` (Comprador Logado)
+
+Esta página já existe. Nenhuma mudança necessária.
+
+---
+
+## 7.4 Sistema de Referência (Bonus)
+
+Compradores aprovados podem indicar outros:
+
+```tsx
+// Na seção de perfil do comprador logado
 <Card className="border-2 border-gold-500">
   <CardHeader>
-    <CardTitle>Seu Link de Referência</CardTitle>
+    <CardTitle>Indique um Comprador</CardTitle>
   </CardHeader>
   <CardContent>
+    <p className="text-sm text-gray-600 mb-4">
+      Indique um amigo para ganhar benefícios exclusivos em sua próxima compra!
+    </p>
     <div className="flex gap-2">
       <Input
         value={`${process.env.NEXT_PUBLIC_URL}/acesso?ref=${userReferralCode}`}
         readOnly
       />
       <Button onClick={() => copyToClipboard(referralLink)}>
-        Copiar
+        Copiar Link
       </Button>
     </div>
-    <p className="text-sm text-gray-600 mt-4">
-      Convide amigos e ganhe {referralBonus} de crédito por cada aprovado!
-    </p>
   </CardContent>
 </Card>
 ```
@@ -917,25 +1253,197 @@ using ( true );
 
 # 10. Checklist de Implementação
 
-- [ ] Criar tabelas no Supabase (invites, pending_members, audit_logs, access_levels)
-- [ ] Implementar RLS policies
-- [ ] Criar Server Actions (validateInvite, createPendingMember, approveMember, rejectMember, logAudit)
-- [ ] Página `/acesso` (input de código)
-- [ ] Página `/acesso/aplicar/[code]` (formulário)
-- [ ] Página `/admin/convites` (dashboard admin)
-- [ ] Componente de geração de convites
-- [ ] Componente de aprovação/rejeição
-- [ ] Validação e rate limiting (@upstash/ratelimit)
-- [ ] Email de boas-vindas (Resend/SendGrid/SES)
-- [ ] Email de rejeição
-- [ ] Notificações ao admin (webhook)
-- [ ] Audit log tracking
-- [ ] Testes de segurança (RLS)
-- [ ] Testes de rate limiting
-- [ ] Documentação de API
-- [ ] Sistema de referência (opcional)
-- [ ] Tiers de acesso (verificação em componentes/pages)
-- [ ] Cron job de expiração (opcional)
+## FASE 1: Banco de Dados (SQL)
+
+- [ ] **1.1** Executar arquivo `backend/migrations/20251201_create_invites_system.sql` no Supabase
+  - Cria tabela `invites` com índices
+  - Cria tabela `pending_members` com índices
+  - Altera tabela `profiles` com novos campos
+  - Cria tabela `audit_logs` com índices
+  - Cria funções auxiliares (`increment_invite_usage`, `log_audit_action`)
+  - Configura RLS policies
+- [ ] **1.2** Verificar se as tabelas foram criadas com sucesso no Supabase
+- [ ] **1.3** Testar as RLS policies (select, insert, update)
+
+---
+
+## FASE 2: Server Actions
+
+- [ ] **2.1** Criar `src/actions/invites.ts`
+  - [ ] Implementar `createInvites(data)` - gera códigos de convite
+  - [ ] Implementar `validateInvite(code, ip)` - valida código antes do formulário
+  - [ ] Implementar `createPendingMember(payload, ip)` - salva candidato + envia webhook
+  
+- [ ] **2.2** Criar `src/actions/audit.ts`
+  - [ ] Implementar `logAudit(action, performed_by, ...)` - função auxiliar de logs
+
+- [ ] **2.3** Criar `src/actions/members.ts`
+  - [ ] Implementar `approveMember(id, adminId)` - aprova candidato (cria user)
+  - [ ] Implementar `rejectMember(id, reason, adminId)` - rejeita candidato
+
+---
+
+## FASE 3: Páginas Públicas
+
+- [ ] **3.1** Criar página `/app/acesso/page.tsx`
+  - [ ] Layout premium (preto + dourado)
+  - [ ] Input para código de convite
+  - [ ] Validação em tempo real do código
+  - [ ] Erro/sucesso messages
+  - [ ] Redireciona para `/acesso/aplicar/[code]` se válido
+
+- [ ] **3.2** Criar página `/app/acesso/aplicar/[code]/page.tsx`
+  - [ ] Formulário com campos: nome, telefone, email, categorias de interesse
+  - [ ] Validação de email (não pode estar em auth.users)
+  - [ ] Chamada Server Action `createPendingMember()`
+  - [ ] Mensagem de sucesso com confirmação
+
+- [ ] **3.3** Criar componentes reutilizáveis
+  - [ ] `/components/invite-code-form.tsx` - form para inserir código
+  - [ ] `/components/invite-application-form.tsx` - form de candidatura
+
+---
+
+## FASE 4: Página Admin (Dashboard)
+
+- [ ] **4.1** Criar página `/app/(dashboard)/admin/convites/page.tsx`
+  - [ ] Proteção: Apenas admins podem acessar (middleware/RLS)
+  
+- [ ] **4.2** Implementar Seção 0: Configuração do Webhook
+  - [ ] Campo input para URL do webhook
+  - [ ] Botão "Salvar Configuração"
+  - [ ] Botão "Testar Webhook"
+  - [ ] Armazenar em `.env.local` ou BD
+  
+- [ ] **4.3** Implementar Seção 1: Métricas
+  - [ ] Total de convites gerados
+  - [ ] Total de convites utilizados (com % conversão)
+  - [ ] Total de candidatos pendentes
+  - [ ] Total de compradores aprovados
+  
+- [ ] **4.4** Implementar Seção 2: Gerar Convites
+  - [ ] Campo "Quantidade" (número)
+  - [ ] Campo "Categoria" (select: geral, premium, vip)
+  - [ ] Campo "Válido até" (date)
+  - [ ] Campo "Notas" (textarea)
+  - [ ] Botão "Gerar Convites"
+  - [ ] Copiar/exibir códigos gerados
+  
+- [ ] **4.5** Implementar Seção 3: Candidatos Pendentes
+  - [ ] Lista de candidatos com status "pending"
+  - [ ] Exibir: nome, email, telefone, código usado, data candidatura
+  - [ ] Botão "Aprovar Comprador" para cada candidato
+  - [ ] Botão "Rejeitar" para cada candidato
+  - [ ] Modal de rejeição com campo "Motivo"
+
+---
+
+## FASE 5: Email Service
+
+- [ ] **5.1** Integrar Resend (recomendado) ou seu email provider
+  - [ ] `npm install resend` (ou SendGrid/SES)
+  - [ ] Configurar API key em `.env.local`
+  - [ ] Criar `lib/email.ts` com funções:
+    - [ ] `sendWelcomeEmail(email, name, tempPassword, resetLink, exclusivityMessage)`
+    - [ ] `sendRejectionEmail(email, name, reason, supportEmail)`
+
+- [ ] **5.2** Testar envio de emails
+  - [ ] Enviar email de boas-vindas para teste
+  - [ ] Enviar email de rejeição para teste
+
+---
+
+## FASE 6: Webhook e Notificações
+
+- [ ] **6.1** Criar webhook no serviço de terceiros
+  - [ ] Discord: Criar webhook em servidor Discord
+  - [ ] OU Make: Criar webhook e configurar ações
+  - [ ] OU Zapier: Criar webhook catch
+  
+- [ ] **6.2** Armazenar URL do webhook
+  - [ ] No Supabase (tabela `settings` ou similar)
+  - [ ] Ou em `.env.local` (para desenvolvimento)
+  
+- [ ] **6.3** Testar webhook
+  - [ ] Usar botão "Testar Webhook" na página admin
+  - [ ] Verificar se notificação chega (Discord/Make/Zapier)
+
+---
+
+## FASE 7: Testes
+
+- [ ] **7.1** Testes de fluxo completo
+  - [ ] [ ] Gerar convite no admin
+  - [ ] [ ] Usuário valida código em `/acesso`
+  - [ ] [ ] Usuário preenche formulário em `/acesso/aplicar/[code]`
+  - [ ] [ ] Webhook notifica admin
+  - [ ] [ ] Admin aprova candidato
+  - [ ] [ ] Usuário recebe email e consegue fazer login
+  - [ ] [ ] Usuário acessa `/oportunidades` com sucesso
+  
+- [ ] **7.2** Testes de segurança
+  - [ ] RLS bloqueia acesso não autorizado
+  - [ ] Admin não consegue acessar outros dados
+  - [ ] Usuário não consegue acessar `/admin/*`
+  - [ ] Código inválido não permite avançar
+  - [ ] Email duplicado não permite candidatura
+  
+- [ ] **7.3** Testes de validação
+  - [ ] Código expirado (status=disabled) é rejeitado
+  - [ ] Código já usado (status=used) é rejeitado
+  - [ ] Max_uses é respeitado
+
+---
+
+## FASE 8: Deployment
+
+- [ ] **8.1** Preparar para produção
+  - [ ] Revisar variáveis de ambiente
+  - [ ] Configurar WEBHOOK_URL para produção
+  - [ ] Configurar email service com credenciais reais
+  - [ ] Revisar RLS policies
+  
+- [ ] **8.2** Deploy na Vercel
+  - [ ] `git push` com todas as mudanças
+  - [ ] Vercel faz deploy automático
+  - [ ] Testar fluxo completo em produção
+  
+- [ ] **8.3** Monitoramento
+  - [ ] Verificar logs de erro
+  - [ ] Monitorar audit_logs para atividades suspeitas
+  - [ ] Testar notificações de webhook em produção
+
+---
+
+## Ordem Recomendada de Execução
+
+1. **FASE 1** (Banco de Dados) - ~15 min
+2. **FASE 5** (Email) - ~10 min
+3. **FASE 2** (Server Actions) - ~45 min
+4. **FASE 3** (Páginas Públicas) - ~60 min
+5. **FASE 4** (Dashboard Admin) - ~90 min
+6. **FASE 6** (Webhook) - ~10 min
+7. **FASE 7** (Testes) - ~60 min
+8. **FASE 8** (Deployment) - ~30 min
+
+**Tempo Total Estimado: ~4-5 horas** ⏱️
+
+---
+
+## Checklist de Implementação
+
+## Checklist de Implementação
+
+- [ ] Executar SQL migration (backend/migrations/20251201_create_invites_system.sql)
+- [ ] Implementar Server Actions (src/actions/invites.ts, audit.ts, members.ts)
+- [ ] Criar página `/acesso` (input de código - PÚBLICA)
+- [ ] Criar página `/acesso/aplicar/[code]` (formulário - PÚBLICA)
+- [ ] Criar página `/admin/convites` (dashboard admin - PRIVADA)
+- [ ] Integrar email service (Resend/SendGrid/SES)
+- [ ] Configurar webhook URL (Discord/Make/Zapier)
+- [ ] Testar fluxo completo (convite → candidatura → aprovação → acesso)
+- [ ] Testar segurança (RLS, acesso não autorizado, validações)
+- [ ] Deploy na Vercel
 
 ---
 
@@ -946,14 +1454,40 @@ Este documento fornece **tudo** que você precisa para implementar o sistema de 
 ✅ Banco de dados completo com RLS  
 ✅ Server Actions seguros e validados  
 ✅ Automação com webhooks  
-✅ Rate limiting contra força bruta  
 ✅ Audit log para compliance  
-✅ Tiers de acesso e permissões granulares  
+✅ Role simples (user) para todos os compradores  
 ✅ Email de notificação  
 ✅ UI premium com dashboard admin  
-✅ Sistema de referência (bonus)
+✅ Sistema de referência (bonus)  
+✅ **Plataforma de COMPRA apenas** (não de venda)  
+✅ Sem acesso a `/dashboard` para compradores  
+✅ Compradores veem apenas oportunidades da GEREZIM
 
-É modular, seguro, escalável e 100% exclusivo.
+## Modelo de Negócio Claro
+
+```
+┌─────────────────────────────────────────┐
+│         GEREZIM (Proprietário)          │
+│  - Cria oportunidades de negócios       │
+│  - Define preços e disponibilidade      │
+│  - Gera convites para compradores       │
+│  - Aprova ou rejeita candidatos         │
+│  - Gerencia dashboard administrativo    │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│      Compradores (Clientes da Gerezim)  │
+│  - Usam convite para acessar            │
+│  - Visualizam oportunidades premium     │
+│  - Favoritam oportunidades              │
+│  - Consultam detalhes                   │
+│  - Compartilham via WhatsApp/Email      │
+│  - NÃO criam oportunidades              │
+│  - NÃO acessam /dashboard               │
+└─────────────────────────────────────────┘
+```
+
+É modular, seguro, escalável e **100% exclusivo** como uma plataforma de compra premium.
 
 ---
 
@@ -961,10 +1495,11 @@ Este documento fornece **tudo** que você precisa para implementar o sistema de 
 
 1. Executar as migrations SQL no Supabase
 2. Criar os Server Actions (`src/actions/invites.ts`, `src/actions/audit.ts`)
-3. Implementar páginas (`/acesso`, `/acesso/aplicar/[code]`, `/admin/convites`)
-4. Testar fluxo completo
-5. Integrar email service (Resend recomendado)
-6. Configurar webhook URL
-7. Deployar na Vercel
+3. Implementar páginas de acesso (`/acesso`, `/acesso/aplicar/[code]`)
+4. Implementar dashboard admin (`/admin/convites`)
+5. Testar fluxo completo
+6. Integrar email service (Resend recomendado)
+7. Configurar webhook URL
+8. Deployar na Vercel
 
 Qualquer dúvida, consulte este documento ou peça por arquivos prontos.
