@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { updateTaskStatus } from '@/backend/actions/tasks'
+import { updateTaskStatus } from '@/actions/tasks'
 import { toast } from 'sonner'
 
 type TaskStatus = 'todo' | 'doing' | 'done'

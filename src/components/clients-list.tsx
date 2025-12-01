@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 type Contact = {
   id: string
@@ -26,8 +25,8 @@ export default function ClientsList({ initialContacts }: Props) {
   const router = useRouter()
   const [q, setQ] = useState('')
   const [selected, setSelected] = useState<Contact | null>(null)
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null)
   const [favorites, setFavorites] = useState<any[] | null>(null)
-  const supabase = createClient()
 
   const results = useMemo(() => {
     if (!q) return initialContacts ?? []
@@ -42,16 +41,24 @@ export default function ClientsList({ initialContacts }: Props) {
 
   async function openProfile(c: Contact) {
     setSelected(c)
-    // load favorites for this profile (user_id) — optional, best effort
-    if (c.user_id) {
-      try {
-        const { data } = await supabase.from('favorites').select('*, products(*)').eq('user_id', c.user_id)
-        setFavorites(data ?? [])
-      } catch (err) {
+    setSelectedProfile(null)
+    setFavorites(null)
+
+    try {
+      // Fetch detailed info via server API which returns contact, favorites and profile
+      const res = await fetch(`/api/clients/${c.id}/details`)
+      if (!res.ok) {
         setFavorites([])
+        return
       }
-    } else {
+
+      const data = await res.json()
+      // favorites from API: { product_id, title }
+      setFavorites(data.favorites ?? [])
+      setSelectedProfile(data.profile ?? null)
+    } catch (err) {
       setFavorites([])
+      setSelectedProfile(null)
     }
   }
 
@@ -108,8 +115,9 @@ export default function ClientsList({ initialContacts }: Props) {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden">
                     <Avatar style={{ height: 64, width: 64 }}>
-                    {selected.avatar_url ? <AvatarImage src={selected.avatar_url} alt={selected.name} /> : <AvatarFallback>{selected.name?.split(' ').map(n=>n[0]).slice(0,2).join('')}</AvatarFallback>}
-                  </Avatar>
+                      {/* priority: profile avatar -> contact avatar -> default public icon */}
+                      <AvatarImage src={selectedProfile?.avatar_url || selected.avatar_url || '/icone-perfil-padrao.png'} alt={selected.name} />
+                    </Avatar>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold">{selected.name}</h3>
@@ -135,11 +143,39 @@ export default function ClientsList({ initialContacts }: Props) {
                   <div className="text-sm text-muted-foreground">Nenhum favorito encontrado para esse perfil</div>
                 ) : (
                   <ul className="space-y-2">
-                    {favorites.map((f:any) => (
-                      <li key={f.id} className="text-sm">{f.product_id || f.products?.title || f.id}</li>
+                    {favorites.map((f:any, idx:number) => (
+                      <li key={f.product_id ?? f.id ?? idx} className="text-sm">
+                        {f.product_id ? (
+                          // link to product detail
+                          <a href={`/oportunidades/${f.product_id}`} className="text-blue-600 hover:underline">{f.title || `Ver produto ${f.product_id}`}</a>
+                        ) : (
+                          // fallback: product data inside nested products or generic id
+                          f.products?.title ? (
+                            <a href={`/oportunidades/${f.products.id}`} className="text-blue-600 hover:underline">{f.products.title}</a>
+                          ) : (
+                            <span>{f.title || f.product_id || f.id}</span>
+                          )
+                        )}
+                      </li>
                     ))}
                   </ul>
                 )}
+
+                {/* Profile interests */}
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold mb-2">Interesses</h4>
+                  {selectedProfile?.interests && Array.isArray(selectedProfile.interests) && selectedProfile.interests.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProfile.interests.map((it: string) => (
+                        <span key={it} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-800">{it}</span>
+                      ))}
+                    </div>
+                  ) : selected.interests ? (
+                    <div className="text-sm text-muted-foreground">{selected.interests}</div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">Nenhum interesse definido</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

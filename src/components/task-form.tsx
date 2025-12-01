@@ -22,7 +22,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { createTask, updateTask } from '@/backend/actions/tasks'
+import { createTask, updateTask } from '@/actions/tasks'
 import { toast } from 'sonner'
 
 type TaskFormData = {

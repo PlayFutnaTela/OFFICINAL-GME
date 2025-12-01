@@ -5,7 +5,7 @@ import { Trash2, Edit, Calendar, AlertCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import TaskStatusDropdown from './task-status-dropdown'
-import { deleteTask } from '@/backend/actions/tasks'
+import { deleteTask } from '@/actions/tasks'
 import { toast } from 'sonner'
 import {
     AlertDialog,
