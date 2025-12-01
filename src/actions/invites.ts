@@ -8,9 +8,9 @@ export async function createInvites(data: {
   notes?: string;
 }) {
   const supabase = createClient();
-  const { data: user } = await supabase.auth.getUser();
+  const { data: authData } = await supabase.auth.getUser();
 
-  if (!user) throw new Error('Usuário não autenticado');
+  if (!authData.user) throw new Error('Usuário não autenticado');
 
   const codes = Array.from({ length: data.quantity }).map(() =>
     'GZM-' + Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -18,7 +18,7 @@ export async function createInvites(data: {
 
   const rows = codes.map((code) => ({
     code,
-    created_by: user.id,
+    created_by: authData.user!.id,
     notes: data.notes || null,
     category: data.category || 'standard',
   }));

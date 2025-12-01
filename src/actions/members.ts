@@ -10,9 +10,9 @@ function generateTempPassword() {
 
 export async function approveMember(id: string) {
   const supabase = createClient();
-  const { data: user } = await supabase.auth.getUser();
+  const { data: authData } = await supabase.auth.getUser();
 
-  if (!user) throw new Error('Usuário não autenticado');
+  if (!authData.user) throw new Error('Usuário não autenticado');
 
   // Buscar candidato
   const { data: candidate, error: candidateError } = await supabase
@@ -60,7 +60,7 @@ export async function approveMember(id: string) {
       .from('pending_members')
       .update({
         status: 'approved',
-        reviewed_by: user.id,
+        reviewed_by: authData.user!.id,
         reviewed_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -95,9 +95,9 @@ export async function approveMember(id: string) {
 
 export async function rejectMember(id: string, reason: string) {
   const supabase = createClient();
-  const { data: user } = await supabase.auth.getUser();
+  const { data: authData } = await supabase.auth.getUser();
 
-  if (!user) throw new Error('Usuário não autenticado');
+  if (!authData.user) throw new Error('Usuário não autenticado');
 
   // Buscar candidato
   const { data: candidate, error: candidateError } = await supabase
@@ -116,7 +116,7 @@ export async function rejectMember(id: string, reason: string) {
       .from('pending_members')
       .update({
         status: 'rejected',
-        reviewed_by: user.id,
+        reviewed_by: authData.user!.id,
         reviewed_at: new Date().toISOString(),
         rejection_reason: reason,
       })
