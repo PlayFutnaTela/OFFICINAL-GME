@@ -47,6 +47,10 @@ export default function TarefasPage() {
     const [filteredTasks, setFilteredTasks] = useState<TaskWithOpportunity[]>([])
     const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string }>>([])
 
+    // Estado para edição
+    const [editingTask, setEditingTask] = useState<TaskWithOpportunity | null>(null)
+    const [isEditOpen, setIsEditOpen] = useState(false)
+
     // Filtros
     const [filterStatus, setFilterStatus] = useState<string>('all')
     const [filterPriority, setFilterPriority] = useState<string>('all')
@@ -203,7 +207,6 @@ export default function TarefasPage() {
                     </p>
                 </div>
                 <TaskForm
-                    opportunities={opportunities}
                     onTaskCreated={handleTaskChanged}
                     onTaskUpdated={handleTaskChanged}
                 />
@@ -309,14 +312,31 @@ export default function TarefasPage() {
                         tasks={taskListData}
                         onTaskDeleted={handleTaskDeleted}
                         onTaskEdit={(task) => {
-                            // TODO: Implementar edição inline se necessário
-                            handleTaskChanged()
+                            setEditingTask(task as TaskWithOpportunity)
+                            setIsEditOpen(true)
                         }}
                         showOpportunityTitle={true}
                         opportunityTitles={opportunityTitles}
                     />
                 </CardContent>
             </Card>
+
+            {/* Modal de Edição */}
+            {editingTask && (
+                <TaskForm
+                    task={editingTask}
+                    open={isEditOpen}
+                    onOpenChange={(open) => {
+                        setIsEditOpen(open)
+                        if (!open) setEditingTask(null)
+                    }}
+                    onTaskUpdated={() => {
+                        handleTaskChanged()
+                        setIsEditOpen(false)
+                        setEditingTask(null)
+                    }}
+                />
+            )}
         </div>
     )
 }

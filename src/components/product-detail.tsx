@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight, MessageCircle, MapPin, ArrowLeft } from 'lucide-react'
+import OpportunityTimeline from '@/components/opportunity-timeline'
 
 type Item = {
   id: string
@@ -96,9 +97,8 @@ export default function ProductDetail({ item, isProduct }: Props) {
                         <button
                           key={index}
                           onClick={() => setCurrentImageIndex(index)}
-                          className={`w-2 h-2 rounded-full ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
+                          className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                            }`}
                         />
                       ))}
                     </div>
@@ -143,8 +143,8 @@ export default function ProductDetail({ item, isProduct }: Props) {
               <div className="flex flex-wrap gap-2 mb-4">
                 <Badge variant="outline">
                   Status: {item.status === 'em_negociacao' ? 'Em negociação' :
-                           item.status === 'active' ? 'Ativo' :
-                           item.status.charAt(0).toUpperCase() + item.status.replace('_', ' ').slice(1)}
+                    item.status === 'active' ? 'Ativo' :
+                      item.status.charAt(0).toUpperCase() + item.status.replace('_', ' ').slice(1)}
                 </Badge>
                 {isProduct && item.stock !== undefined && (
                   <Badge variant="outline">
@@ -183,6 +183,11 @@ export default function ProductDetail({ item, isProduct }: Props) {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Saiba Mais
               </Button>
+            </div>
+
+            {/* Linha do Tempo */}
+            <div className="mt-8">
+              <OpportunityTimeline opportunityId={item.id} />
             </div>
           </div>
         </div>

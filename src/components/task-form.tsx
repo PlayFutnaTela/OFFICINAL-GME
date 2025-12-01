@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { createTask, updateTask } from '@/actions/tasks'
+import { getAllUsers, getAllOpportunities } from '@/actions/users'
 import { toast } from 'sonner'
 
 type TaskFormData = {
@@ -32,6 +33,7 @@ type TaskFormData = {
     priority: 'low' | 'normal' | 'high'
     due_date: string
     opportunity_id: string
+    assigned_user_id: string
 }
 
 type Task = {
@@ -50,30 +52,63 @@ type Task = {
 interface TaskFormProps {
     trigger?: React.ReactNode
     task?: Task | null
-    opportunityId?: string
-    opportunities?: Array<{ id: string; title: string }>
     onTaskCreated?: () => void
     onTaskUpdated?: () => void
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
 export default function TaskForm({
     trigger,
     task = null,
-    opportunityId,
-    opportunities = [],
     onTaskCreated,
     onTaskUpdated,
+    open: controlledOpen,
+    onOpenChange: setControlledOpen,
 }: TaskFormProps) {
-    const [open, setOpen] = useState(false)
+    const [internalOpen, setInternalOpen] = useState(false)
+
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : internalOpen
+    const setOpen = isControlled ? setControlledOpen! : setInternalOpen
     const [isSaving, setIsSaving] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(true)
+    const [users, setUsers] = useState<Array<{ id: string; full_name: string | null }>>([])
+    const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string; category: string }>>([])
+
     const [formData, setFormData] = useState<TaskFormData>({
         title: '',
         description: '',
         status: 'todo',
         priority: 'normal',
         due_date: '',
-        opportunity_id: opportunityId || '',
+        opportunity_id: '',
+        assigned_user_id: '',
     })
+
+    // Carregar usuários e oportunidades quando o modal abre
+    useEffect(() => {
+        if (open) {
+            loadFormData()
+        }
+    }, [open])
+
+    const loadFormData = async () => {
+        try {
+            setIsLoadingData(true)
+            const [usersData, oppsData] = await Promise.all([
+                getAllUsers(),
+                getAllOpportunities()
+            ])
+            setUsers(usersData)
+            setOpportunities(oppsData)
+        } catch (error) {
+            console.error('Error loading form data:', error)
+            toast.error('Erro ao carregar dados do formulário')
+        } finally {
+            setIsLoadingData(false)
+        }
+    }
 
     // Atualiza o formulário quando a tarefa muda
     useEffect(() => {
@@ -85,6 +120,7 @@ export default function TaskForm({
                 priority: task.priority,
                 due_date: task.due_date || '',
                 opportunity_id: task.opportunity_id,
+                assigned_user_id: task.user_id,
             })
         } else {
             // Reset form
@@ -94,10 +130,11 @@ export default function TaskForm({
                 status: 'todo',
                 priority: 'normal',
                 due_date: '',
-                opportunity_id: opportunityId || '',
+                opportunity_id: '',
+                assigned_user_id: '',
             })
         }
-    }, [task, opportunityId, open])
+    }, [task, open])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -109,6 +146,11 @@ export default function TaskForm({
 
         if (!formData.opportunity_id) {
             toast.error('Selecione uma oportunidade')
+            return
+        }
+
+        if (!formData.assigned_user_id) {
+            toast.error('Selecione um usuário responsável')
             return
         }
 
@@ -160,7 +202,7 @@ export default function TaskForm({
             <DialogTrigger asChild>
                 {trigger || defaultTrigger}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>
@@ -169,117 +211,156 @@ export default function TaskForm({
                         <DialogDescription>
                             {task
                                 ? 'Atualize as informações da tarefa'
-                                : 'Crie uma nova tarefa para acompanhar suas atividades'}
+                                : 'Crie uma nova tarefa vinculada a uma oportunidade e atribua a um usuário'}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="title">
-                                Título <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="title"
-                                value={formData.title}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, title: e.target.value })
-                                }
-                                placeholder="Digite o título da tarefa"
-                                required
-                            />
+                    {isLoadingData ? (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
                         </div>
+                    ) : (
+                        <div className="grid gap-4 py-4">
+                            {/* Oportunidade e Usuário - SEMPRE VISÍVEIS */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="opportunity">
+                                        Oportunidade <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Select
+                                        value={formData.opportunity_id}
+                                        onValueChange={(value) =>
+                                            setFormData({ ...formData, opportunity_id: value })
+                                        }
+                                        required
+                                        disabled={!!task}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione uma oportunidade" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {opportunities.map((opp) => (
+                                                <SelectItem key={opp.id} value={opp.id}>
+                                                    {opp.title} ({opp.category})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {opportunities.length === 0 && (
+                                        <p className="text-xs text-red-500">Nenhuma oportunidade disponível</p>
+                                    )}
+                                </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Descrição</Label>
-                            <Textarea
-                                id="description"
-                                value={formData.description}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, description: e.target.value })
-                                }
-                                placeholder="Descreva os detalhes da tarefa (opcional)"
-                                className="resize-none h-24"
-                            />
-                        </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="assigned_user">
+                                        Usuário Responsável <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Select
+                                        value={formData.assigned_user_id}
+                                        onValueChange={(value) =>
+                                            setFormData({ ...formData, assigned_user_id: value })
+                                        }
+                                        required
+                                        disabled={!!task}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione um usuário" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {users.map((user) => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.full_name || 'Sem nome'}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {users.length === 0 && (
+                                        <p className="text-xs text-red-500">Nenhum usuário disponível</p>
+                                    )}
+                                </div>
+                            </div>
 
-                        {!opportunityId && opportunities.length > 0 && (
                             <div className="space-y-2">
-                                <Label htmlFor="opportunity">
-                                    Oportunidade <span className="text-red-500">*</span>
+                                <Label htmlFor="title">
+                                    Título <span className="text-red-500">*</span>
                                 </Label>
-                                <Select
-                                    value={formData.opportunity_id}
-                                    onValueChange={(value) =>
-                                        setFormData({ ...formData, opportunity_id: value })
+                                <Input
+                                    id="title"
+                                    value={formData.title}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, title: e.target.value })
                                     }
+                                    placeholder="Digite o título da tarefa"
                                     required
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione uma oportunidade" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {opportunities.map((opp) => (
-                                            <SelectItem key={opp.id} value={opp.id}>
-                                                {opp.title}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="status">Status</Label>
-                                <Select
-                                    value={formData.status}
-                                    onValueChange={(value: 'todo' | 'doing' | 'done') =>
-                                        setFormData({ ...formData, status: value })
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="todo">A Fazer</SelectItem>
-                                        <SelectItem value="doing">Em Andamento</SelectItem>
-                                        <SelectItem value="done">Concluída</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="priority">Prioridade</Label>
-                                <Select
-                                    value={formData.priority}
-                                    onValueChange={(value: 'low' | 'normal' | 'high') =>
-                                        setFormData({ ...formData, priority: value })
+                                <Label htmlFor="description">Descrição</Label>
+                                <Textarea
+                                    id="description"
+                                    value={formData.description}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, description: e.target.value })
                                     }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="normal">Normal</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                    placeholder="Descreva os detalhes da tarefa (opcional)"
+                                    className="resize-none h-24"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select
+                                        value={formData.status}
+                                        onValueChange={(value: 'todo' | 'doing' | 'done') =>
+                                            setFormData({ ...formData, status: value })
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="todo">A Fazer</SelectItem>
+                                            <SelectItem value="doing">Em Andamento</SelectItem>
+                                            <SelectItem value="done">Concluída</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="priority">Prioridade</Label>
+                                    <Select
+                                        value={formData.priority}
+                                        onValueChange={(value: 'low' | 'normal' | 'high') =>
+                                            setFormData({ ...formData, priority: value })
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">Baixa</SelectItem>
+                                            <SelectItem value="normal">Normal</SelectItem>
+                                            <SelectItem value="high">Alta</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="due_date">Prazo</Label>
+                                <Input
+                                    id="due_date"
+                                    type="date"
+                                    value={formData.due_date}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, due_date: e.target.value })
+                                    }
+                                />
                             </div>
                         </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="due_date">Prazo</Label>
-                            <Input
-                                id="due_date"
-                                type="date"
-                                value={formData.due_date}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, due_date: e.target.value })
-                                }
-                            />
-                        </div>
-                    </div>
+                    )}
 
                     <DialogFooter>
                         <Button
@@ -290,7 +371,7 @@ export default function TaskForm({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" disabled={isSaving || isLoadingData} className="bg-blue-600 hover:bg-blue-700">
                             {isSaving ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
