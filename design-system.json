@@ -1,0 +1,234 @@
+{
+  "designSystem": {
+    "overview": {
+      "style": "Luxury minimalism with sophisticated elegance",
+      "principles": [
+        "Premium and refined aesthetic",
+        "High contrast with purposeful use of white space",
+        "Elegant typography hierarchy",
+        "Subtle luxury accents through gold/brass tones",
+        "Clean grid-based layouts with architectural precision",
+        "Professional imagery with lifestyle focus"
+      ]
+    },
+    "colors": {
+      "primary": {
+        "main": "#FFFFFF",
+        "description": "Pure white for main backgrounds and primary text on dark surfaces"
+      },
+      "secondary": {
+        "main": "#1C3F3A",
+        "description": "Deep forest green - used for hero sections and premium dark backgrounds"
+      },
+      "accent": {
+        "gold": "#C8A882",
+        "description": "Muted gold/brass tone for CTAs, highlights, and premium touches"
+      },
+      "neutrals": {
+        "darkGray": "#2B2B2B",
+        "mediumGray": "#6B6B6B",
+        "lightGray": "#F5F5F5",
+        "warmBeige": "#EBE8D8",
+        "description": "Used for text hierarchy, backgrounds, and subtle contrasts"
+      },
+      "usage": {
+        "backgrounds": "Alternate between pure white (#FFFFFF) and deep green (#1C3F3A) for section contrast",
+        "text": "Dark gray (#2B2B2B) on light backgrounds, white on dark backgrounds",
+        "cta": "Gold (#C8A882) for primary actions with subtle hover states",
+        "cards": "White cards on colored backgrounds with minimal shadows for depth"
+      }
+    },
+    "typography": {
+      "fontFamilies": {
+        "primary": "Serif font family (similar to Playfair Display or Cormorant)",
+        "secondary": "Clean sans-serif (similar to Inter or Montserrat)",
+        "usage": "Serif for headlines (h1, h2, h3), sans-serif for body text and UI elements"
+      },
+      "scale": {
+        "h1": {
+          "size": "48-64px",
+          "weight": "300-400 (Light to Regular)",
+          "lineHeight": "1.2",
+          "letterSpacing": "-0.02em",
+          "textTransform": "uppercase for certain contexts",
+          "description": "Hero titles with elegant serif"
+        },
+        "h2": {
+          "size": "36-48px",
+          "weight": "300-400",
+          "lineHeight": "1.3",
+          "letterSpacing": "-0.01em",
+          "textTransform": "uppercase",
+          "description": "Section headers with refined spacing"
+        },
+        "h3": {
+          "size": "20-24px",
+          "weight": "400-500",
+          "lineHeight": "1.4",
+          "letterSpacing": "0",
+          "textTransform": "none or uppercase",
+          "description": "Card titles and subsection headers"
+        },
+        "body": {
+          "size": "16-18px",
+          "weight": "300-400",
+          "lineHeight": "1.6-1.8",
+          "letterSpacing": "0.01em",
+          "description": "Readable sans-serif for paragraphs"
+        },
+        "small": {
+          "size": "14px",
+          "weight": "400",
+          "lineHeight": "1.5",
+          "description": "Footer links and secondary information"
+        }
+      },
+      "hierarchy": "Strong contrast between headline weight and body text. Headlines are light and elegant, body text is comfortable to read"
+    },
+    "spacing": {
+      "system": "8px base unit (8, 16, 24, 32, 40, 48, 64, 80, 96, 120, 160)",
+      "sections": {
+        "paddingVertical": "96-160px",
+        "description": "Generous vertical spacing between major sections"
+      },
+      "container": {
+        "maxWidth": "1280-1440px",
+        "paddingHorizontal": "40-80px",
+        "description": "Centered content with breathing room on sides"
+      },
+      "cards": {
+        "padding": "32-48px",
+        "gap": "24-32px between cards",
+        "description": "Comfortable internal padding with clear separation"
+      },
+      "elements": {
+        "gap": "16-24px between related elements",
+        "description": "Consistent rhythm throughout"
+      }
+    },
+    "layout": {
+      "grid": {
+        "columns": "12-column grid system",
+        "gap": "24-32px",
+        "description": "Architectural precision with clear column divisions"
+      },
+      "principles": [
+        "Symmetrical balance in 2-column layouts",
+        "Grid-based alignment for multi-card sections",
+        "50/50 split for hero sections with image and content",
+        "Full-width sections that alternate between light and dark",
+        "Centered text in key sections for emphasis"
+      ],
+      "structure": "Clean horizontal divisions with full-bleed backgrounds, contained content within max-width containers"
+    },
+    "components": {
+      "buttons": {
+        "primary": {
+          "background": "#C8A882 (gold accent)",
+          "text": "#FFFFFF or #2B2B2B",
+          "padding": "16px 32px",
+          "borderRadius": "2-4px (minimal rounding)",
+          "fontSize": "14-16px",
+          "fontWeight": "500",
+          "textTransform": "uppercase",
+          "letterSpacing": "0.1em",
+          "hover": "Subtle opacity change (0.9) or slight background lightening",
+          "transition": "all 300ms ease"
+        },
+        "secondary": {
+          "background": "transparent",
+          "border": "1px solid #C8A882 or currentColor",
+          "text": "inherit from context",
+          "padding": "14px 28px",
+          "style": "Same typography as primary"
+        }
+      },
+      "cards": {
+        "background": "#FFFFFF",
+        "padding": "32-48px",
+        "borderRadius": "0-4px (minimal or sharp corners)",
+        "shadow": "0 4px 24px rgba(0,0,0,0.06) (very subtle)",
+        "border": "none or 1px solid rgba(0,0,0,0.05)",
+        "hover": "Subtle lift with shadow increase: 0 8px 32px rgba(0,0,0,0.08)",
+        "transition": "transform 300ms ease, box-shadow 300ms ease"
+      },
+      "icons": {
+        "size": "24-32px for card icons, 20px for inline icons",
+        "color": "#C8A882 (gold) or inherit from context",
+        "strokeWidth": "1.5-2",
+        "style": "Lucide icons with clean, minimal aesthetic"
+      },
+      "images": {
+        "treatment": "High-quality lifestyle photography",
+        "aspectRatio": "Varies by section - 16:9 for hero, 4:3 for features",
+        "overlay": "Subtle gradient overlays when text is overlaid (rgba(0,0,0,0.2-0.4))",
+        "objectFit": "cover with proper positioning"
+      },
+      "dividers": {
+        "style": "Thin horizontal lines (1px solid rgba(0,0,0,0.1))",
+        "usage": "Sparingly - gold accent lines (#C8A882) for decorative purposes",
+        "width": "40-80px for decorative accent lines"
+      }
+    },
+    "interactions": {
+      "animations": {
+        "duration": "300-600ms",
+        "easing": "ease or cubic-bezier for smooth, elegant motion",
+        "hover": "Subtle scale (1.02-1.05) or opacity changes",
+        "scroll": "Gentle fade-in and slide-up effects on section entry"
+      },
+      "states": {
+        "hover": "Subtle visual feedback - never aggressive",
+        "active": "Slight press effect with scale(0.98)",
+        "focus": "Gold outline (2px solid #C8A882) with offset"
+      }
+    },
+    "imagery": {
+      "style": [
+        "Luxury lifestyle photography",
+        "Professional setting with natural lighting",
+        "Muted, sophisticated color grading",
+        "Focus on experience and aspiration",
+        "Human elements showing exclusive services"
+      ],
+      "composition": "Clean, uncluttered compositions with clear subjects",
+      "treatment": "Slight desaturation for timeless elegance"
+    },
+    "designPatterns": {
+      "hero": {
+        "layout": "50/50 split - content left, image right",
+        "alignment": "Left-aligned text with ample left padding",
+        "background": "#FFFFFF or subtle gradient",
+        "image": "Full-height covering right column"
+      },
+      "features": {
+        "layout": "3-column grid with equal-width cards",
+        "background": "White or light neutral",
+        "cards": "Centered icon, title, and description",
+        "spacing": "Consistent gaps between cards"
+      },
+      "testimonial": {
+        "layout": "Centered single column or 2-column with image",
+        "background": "Dark (#1C3F3A) for contrast",
+        "text": "White text with gold accents"
+      },
+      "cta": {
+        "layout": "Centered single column",
+        "background": "Dark (#1C3F3A) or gradient",
+        "emphasis": "Large headline with supporting checklist",
+        "button": "Prominent gold CTA button"
+      },
+      "footer": {
+        "background": "#2B2B2B or #1C3F3A",
+        "text": "Light gray or white",
+        "layout": "Multi-column with logo, links, and legal"
+      }
+    },
+    "accessibility": {
+      "contrast": "WCAG AA minimum - white text on dark backgrounds, dark text on light",
+      "focusIndicators": "Clear gold outline on interactive elements",
+      "textSize": "Minimum 16px for body text",
+      "touchTargets": "Minimum 44x44px for buttons and interactive elements"
+    }
+  }
+}
