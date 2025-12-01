@@ -76,9 +76,10 @@ export default function TaskList({
             if (onTaskDeleted) {
                 onTaskDeleted(taskId)
             }
-        } catch (error) {
-            console.error('Error deleting task:', error)
-            toast.error('Erro ao excluir tarefa')
+        } catch (error: any) {
+            const message = error?.message || (typeof error === 'string' ? error : 'Erro ao excluir tarefa')
+            console.error('Error deleting task:', message, error)
+            toast.error(message)
         } finally {
             setDeletingId(null)
         }

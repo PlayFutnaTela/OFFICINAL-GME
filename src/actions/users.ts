@@ -34,20 +34,40 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 }
 
 /**
- * Busca todas as oportunidades para seleção
+ * Busca todas as oportunidades e produtos para seleção
  */
-export async function getAllOpportunities(): Promise<Array<{ id: string; title: string; category: string }>> {
+export async function getAllItems(): Promise<Array<{ id: string; title: string; category: string; type: 'opportunity' | 'product' }>> {
     const supabase = createClient()
 
-    const { data, error } = await supabase
+    const { data: opportunities, error: oppError } = await supabase
         .from('opportunities')
         .select('id, title, category')
         .order('created_at', { ascending: false })
 
-    if (error) {
-        console.error('Error fetching opportunities:', error)
-        throw error
+    if (oppError) {
+        console.error('Error fetching opportunities:', oppError)
+        throw oppError
     }
 
-    return data || []
+    const { data: products, error: prodError } = await supabase
+        .from('products')
+        .select('id, title, category')
+        .order('created_at', { ascending: false })
+
+    if (prodError) {
+        console.error('Error fetching products:', prodError)
+        throw prodError
+    }
+
+    const formattedOpportunities = (opportunities || []).map(opp => ({
+        ...opp,
+        type: 'opportunity' as const
+    }))
+
+    const formattedProducts = (products || []).map(prod => ({
+        ...prod,
+        type: 'product' as const
+    }))
+
+    return [...formattedOpportunities, ...formattedProducts]
 }

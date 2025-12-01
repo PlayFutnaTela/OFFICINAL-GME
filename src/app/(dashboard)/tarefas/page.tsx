@@ -35,6 +35,13 @@ type TaskWithOpportunity = {
         value: number
         status: string
     } | null
+    products: {
+        id: string
+        title: string
+        category: string
+        value: number
+        status: string
+    } | null
 }
 
 export default function TarefasPage() {
@@ -45,7 +52,7 @@ export default function TarefasPage() {
     const [isAdmin, setIsAdmin] = useState(false)
     const [tasks, setTasks] = useState<TaskWithOpportunity[]>([])
     const [filteredTasks, setFilteredTasks] = useState<TaskWithOpportunity[]>([])
-    const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string }>>([])
+    const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string; type: 'opportunity' | 'product' }>>([])
 
     // Estado para edição
     const [editingTask, setEditingTask] = useState<TaskWithOpportunity | null>(null)
@@ -98,21 +105,36 @@ export default function TarefasPage() {
             setTasks(tasksData)
             setFilteredTasks(tasksData)
 
-            // Extrair lista única de oportunidades
-            const uniqueOpportunities = tasksData
-                .filter((task) => task.opportunities)
-                .map((task) => ({
-                    id: task.opportunities!.id,
-                    title: task.opportunities!.title,
-                }))
-                .filter((opp, index, self) =>
-                    index === self.findIndex((o) => o.id === opp.id)
+            // Extrair lista única de oportunidades e produtos
+            const uniqueItems = tasksData
+                .map((task) => {
+                    if (task.opportunities) {
+                        return {
+                            id: task.opportunities.id,
+                            title: task.opportunities.title,
+                            type: 'opportunity' as const
+                        }
+                    }
+                    if (task.products) {
+                        return {
+                            id: task.products.id,
+                            title: task.products.title,
+                            type: 'product' as const
+                        }
+                    }
+                    return null
+                })
+                .filter((item): item is { id: string; title: string; type: 'opportunity' | 'product' } => item !== null)
+                .filter((item, index, self) =>
+                    index === self.findIndex((i) => i.id === item.id)
                 )
 
-            setOpportunities(uniqueOpportunities)
-        } catch (error) {
-            console.error('Error loading tasks:', error)
-            toast.error('Erro ao carregar tarefas')
+            setOpportunities(uniqueItems)
+        } catch (error: any) {
+            // Prefer a descriptive message if available
+            const message = error?.message || (typeof error === 'string' ? error : 'Erro ao carregar tarefas')
+            console.error('Error loading tasks:', message, error)
+            toast.error(message)
         } finally {
             setLoading(false)
         }
@@ -180,10 +202,12 @@ export default function TarefasPage() {
         updated_at: task.updated_at,
     }))
 
-    // Criar mapa de títulos de oportunidades
+    // Criar mapa de títulos
     const opportunityTitles = filteredTasks.reduce((acc, task) => {
         if (task.opportunities) {
             acc[task.opportunity_id] = task.opportunities.title
+        } else if (task.products) {
+            acc[task.opportunity_id] = `📦 ${task.products.title}`
         }
         return acc
     }, {} as Record<string, string>)

@@ -61,9 +61,10 @@ export default function TaskStatusDropdown({
             if (onStatusChange) {
                 onStatusChange(newStatus)
             }
-        } catch (error) {
-            console.error('Error updating task status:', error)
-            toast.error('Erro ao atualizar status da tarefa')
+        } catch (error: any) {
+            const message = error?.message || (typeof error === 'string' ? error : 'Erro ao atualizar status da tarefa')
+            console.error('Error updating task status:', message, error)
+            toast.error(message)
         } finally {
             setIsUpdating(false)
         }

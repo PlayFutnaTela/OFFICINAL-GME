@@ -23,7 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { createTask, updateTask } from '@/actions/tasks'
-import { getAllUsers, getAllOpportunities } from '@/actions/users'
+import { getAllUsers, getAllItems } from '@/actions/users'
 import { toast } from 'sonner'
 
 type TaskFormData = {
@@ -74,7 +74,7 @@ export default function TaskForm({
     const [isSaving, setIsSaving] = useState(false)
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [users, setUsers] = useState<Array<{ id: string; full_name: string | null }>>([])
-    const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string; category: string }>>([])
+    const [opportunities, setOpportunities] = useState<Array<{ id: string; title: string; category: string; type: 'opportunity' | 'product' }>>([])
 
     const [formData, setFormData] = useState<TaskFormData>({
         title: '',
@@ -96,12 +96,12 @@ export default function TaskForm({
     const loadFormData = async () => {
         try {
             setIsLoadingData(true)
-            const [usersData, oppsData] = await Promise.all([
+            const [usersData, itemsData] = await Promise.all([
                 getAllUsers(),
-                getAllOpportunities()
+                getAllItems()
             ])
             setUsers(usersData)
-            setOpportunities(oppsData)
+            setOpportunities(itemsData)
         } catch (error) {
             console.error('Error loading form data:', error)
             toast.error('Erro ao carregar dados do formulário')
@@ -182,9 +182,10 @@ export default function TaskForm({
             }
 
             setOpen(false)
-        } catch (error) {
-            console.error('Error saving task:', error)
-            toast.error('Erro ao salvar tarefa')
+        } catch (error: any) {
+            const message = error?.message || (typeof error === 'string' ? error : 'Erro ao salvar tarefa')
+            console.error('Error saving task:', message, error)
+            toast.error(message)
         } finally {
             setIsSaving(false)
         }
@@ -225,7 +226,7 @@ export default function TaskForm({
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="opportunity">
-                                        Oportunidade <span className="text-red-500">*</span>
+                                        Oportunidade / Produto <span className="text-red-500">*</span>
                                     </Label>
                                     <Select
                                         value={formData.opportunity_id}
@@ -236,18 +237,19 @@ export default function TaskForm({
                                         disabled={!!task}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Selecione uma oportunidade" />
+                                            <SelectValue placeholder="Selecione..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {opportunities.map((opp) => (
-                                                <SelectItem key={opp.id} value={opp.id}>
-                                                    {opp.title} ({opp.category})
+                                            {opportunities.map((item) => (
+                                                <SelectItem key={item.id} value={item.id}>
+                                                    {item.type === 'product' ? '📦 ' : '💼 '}
+                                                    {item.title} ({item.category})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     {opportunities.length === 0 && (
-                                        <p className="text-xs text-red-500">Nenhuma oportunidade disponível</p>
+                                        <p className="text-xs text-red-500">Nenhum item disponível</p>
                                     )}
                                 </div>
 
