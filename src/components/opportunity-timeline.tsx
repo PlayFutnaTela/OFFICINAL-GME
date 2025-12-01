@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Clock, User, CheckCircle, AlertCircle, TrendingUp, Info } from 'lucide-react'
+import { Clock, User, CheckCircle, AlertCircle, TrendingUp, Info, HelpCircle } from 'lucide-react'
 import { getOpportunityLogs } from '@/actions/logs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
@@ -32,10 +32,12 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
     const loadLogs = async () => {
         try {
             setLoading(true)
+            console.log(`[opportunity-timeline] Carregando logs para opportunityId: ${opportunityId}`)
             const data = await getOpportunityLogs(opportunityId)
+            console.log(`[opportunity-timeline] Logs recebidos:`, data)
             setLogs(data)
         } catch (error) {
-            console.error('Error loading logs:', error)
+            console.error('[opportunity-timeline] Error loading logs:', error)
         } finally {
             setLoading(false)
         }
@@ -87,10 +89,25 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5" />
-                        Linha do Tempo
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                            <Clock className="h-5 w-5" />
+                            Linha do Tempo
+                        </CardTitle>
+                        <div className="relative group">
+                            <HelpCircle className="h-5 w-5 text-gray-400 cursor-help hover:text-gray-600 transition-colors" />
+                            <div className="absolute bottom-full right-0 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-10 shadow-lg">
+                                <p className="font-semibold mb-1">Atividades registradas:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs">
+                                    <li>Criação de tarefas</li>
+                                    <li>Conclusão de tarefas</li>
+                                    <li>Remoção de tarefas</li>
+                                    <li>Alterações de status</li>
+                                </ul>
+                                <div className="absolute bottom-0 right-4 transform translate-y-full border-8 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-center py-8">
@@ -105,10 +122,25 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5" />
-                        Linha do Tempo
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                            <Clock className="h-5 w-5" />
+                            Linha do Tempo
+                        </CardTitle>
+                        <div className="relative group">
+                            <HelpCircle className="h-5 w-5 text-gray-400 cursor-help hover:text-gray-600 transition-colors" />
+                            <div className="absolute bottom-full right-0 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-10 shadow-lg">
+                                <p className="font-semibold mb-1">Atividades registradas:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs">
+                                    <li>Criação de tarefas</li>
+                                    <li>Conclusão de tarefas</li>
+                                    <li>Remoção de tarefas</li>
+                                    <li>Alterações de status</li>
+                                </ul>
+                                <div className="absolute bottom-0 right-4 transform translate-y-full border-8 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <CardDescription>
                         Histórico de atividades desta oportunidade
                     </CardDescription>
@@ -125,10 +157,25 @@ export default function OpportunityTimeline({ opportunityId }: OpportunityTimeli
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Linha do Tempo
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5" />
+                        Linha do Tempo
+                    </CardTitle>
+                    <div className="relative group">
+                        <HelpCircle className="h-5 w-5 text-gray-400 cursor-help hover:text-gray-600 transition-colors" />
+                        <div className="absolute bottom-full right-0 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-10 shadow-lg">
+                            <p className="font-semibold mb-1">Atividades registradas:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                                <li>Criação de tarefas</li>
+                                <li>Conclusão de tarefas</li>
+                                <li>Remoção de tarefas</li>
+                                <li>Alterações de status</li>
+                            </ul>
+                            <div className="absolute bottom-0 right-4 transform translate-y-full border-8 border-transparent border-t-gray-900"></div>
+                        </div>
+                    </div>
+                </div>
                 <CardDescription>
                     Histórico de {logs.length} {logs.length === 1 ? 'atividade' : 'atividades'}
                 </CardDescription>
