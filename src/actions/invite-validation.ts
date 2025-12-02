@@ -106,6 +106,7 @@ export async function updateProfileWithInvite(userId: string, code: string) {
         .from('profiles')
         .insert({
           id: userId,
+          invite_code: code.toUpperCase(),
           joined_by_invite: code.toUpperCase(),
           joined_date: new Date().toISOString(),
         })
@@ -125,6 +126,7 @@ export async function updateProfileWithInvite(userId: string, code: string) {
     const { error: updateError, data: updateData } = await supabase
       .from('profiles')
       .update({
+        invite_code: code.toUpperCase(),
         joined_by_invite: code.toUpperCase(),
         joined_date: new Date().toISOString(),
       })

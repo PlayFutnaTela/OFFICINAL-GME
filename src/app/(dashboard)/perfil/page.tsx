@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRequireInviteValidation } from '@/hooks/use-require-invite-validation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,7 @@ import AvatarUpload from '@/components/avatar-upload'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
+    const { isChecking } = useRequireInviteValidation()
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -102,7 +104,7 @@ export default function ProfilePage() {
         }
     }
 
-    if (loading) {
+    if (isChecking || loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />

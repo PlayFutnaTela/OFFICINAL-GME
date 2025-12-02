@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import FavoritesList from '@/components/favorites-list'
+import { FavoritosClientWrapper } from './client-wrapper'
 
 export default async function FavoritosPage() {
     const supabase = createClient()
@@ -47,5 +48,9 @@ export default async function FavoritosPage() {
         favorited_at: fav.created_at
     })).filter(p => p && 'id' in p && p.id) as any[] || []
 
-    return <FavoritesList initialProducts={products as any} userId={user.id} />
+    return (
+        <FavoritosClientWrapper>
+            <FavoritesList initialProducts={products as any} userId={user.id} />
+        </FavoritosClientWrapper>
+    )
 }
