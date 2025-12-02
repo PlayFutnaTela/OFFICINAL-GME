@@ -60,8 +60,14 @@ export default function AplicarPage({ params }: { params: { code: string } }) {
     setError('');
     setLoading(true);
 
+    console.log('Iniciando envio do formulário...', {
+      code: params.code,
+      name: formData.name,
+      email: formData.email,
+    });
+
     try {
-      await createPendingMember({
+      const result = await createPendingMember({
         code: params.code,
         name: formData.name,
         phone: formData.phone,
@@ -69,11 +75,12 @@ export default function AplicarPage({ params }: { params: { code: string } }) {
         extra_info: { interests: formData.interests },
       });
 
+      console.log('Formulário enviado com sucesso!', result);
       setSuccess(true);
       setTimeout(() => router.push('/'), 3000);
     } catch (err: any) {
-      setError(err.message || 'Erro ao enviar formulário');
-      console.error(err);
+      console.error('Erro ao enviar formulário:', err);
+      setError(err.message || 'Erro ao enviar formulário. Tente novamente.');
     } finally {
       setLoading(false);
     }

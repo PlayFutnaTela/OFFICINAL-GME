@@ -32,7 +32,7 @@ export async function approveMember(id: string) {
     const { data: newUser, error: authError } = await supabase.auth.admin.createUser({
       email: candidate.email,
       password: tempPassword,
-      email_confirm: true,
+      email_confirm: true, // Email já confirmado automaticamente
     });
 
     if (authError || !newUser.user) {

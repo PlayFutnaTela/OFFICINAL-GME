@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +19,7 @@ export default function LoginPage({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
 
   // Show a toast if we were redirected to /login with a message explaining why
   React.useEffect(() => {
@@ -60,8 +62,10 @@ export default function LoginPage({
     setLoading(false)
   }
 
-  const signUp = async () => {
+  const signUp = async (e: React.FormEvent) => {
+    e.preventDefault()
     setLoading(true)
+
     if (!email || !password) {
       toast.error('Preencha email e senha para criar conta')
       setLoading(false)
@@ -75,20 +79,35 @@ export default function LoginPage({
 
     const supabase = createClient()
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-        },
       })
+
       if (error) {
         toast.error('Erro ao criar conta: ' + error.message)
-      } else {
-        toast.success('Verifique o email para confirmar o cadastro')
+        setLoading(false)
+        return
       }
-    } catch (err) {
-      toast.error('Erro inesperado no cadastro')
+
+      if (!data.user) {
+        toast.error('Falha ao criar usuário')
+        setLoading(false)
+        return
+      }
+
+      // Criar profile básico
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        email: email,
+      })
+
+      toast.success('Conta criada! Insira seu código de convite.')
+      
+      // Redirecionar para página de validar convite
+      router.push('/auth/register')
+    } catch (err: any) {
+      toast.error('Erro inesperado no cadastro: ' + err.message)
     }
     setLoading(false)
   }

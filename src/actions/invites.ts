@@ -63,7 +63,9 @@ export async function createPendingMember(payload: {
 }) {
   const supabase = createClient();
 
-  // Validar se email não existe
+  console.log('createPendingMember iniciado', payload);
+
+  // Validar se email não existe em profiles
   const { data: existingUser } = await supabase
     .from('profiles')
     .select('id')
@@ -71,10 +73,24 @@ export async function createPendingMember(payload: {
     .maybeSingle();
 
   if (existingUser) {
+    console.error('Email já existe em profiles');
     throw new Error('Este email já está registrado no sistema');
   }
 
+  // Validar se email não está em pending_members
+  const { data: existingPending } = await supabase
+    .from('pending_members')
+    .select('id')
+    .eq('email', payload.email)
+    .maybeSingle();
+
+  if (existingPending) {
+    console.error('Email já existe em pending_members');
+    throw new Error('Este email já possui uma solicitação pendente');
+  }
+
   // Criar pending member
+  console.log('Inserindo pending member no BD...');
   const { data: newMember, error } = await supabase
     .from('pending_members')
     .insert({
@@ -87,7 +103,12 @@ export async function createPendingMember(payload: {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Erro ao inserir pending member:', error);
+    throw error;
+  }
+
+  console.log('Pending member criado:', newMember);
 
   // Incrementar times_used
   await supabase.rpc('increment_invite_usage', {

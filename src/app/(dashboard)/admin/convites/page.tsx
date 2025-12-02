@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { createInvites } from '@/actions/invites';
 import { approveMember, rejectMember } from '@/actions/members';
+import { testInviteSystem } from '@/actions/test-invites';
+import { testCompleteFlow } from '@/actions/test-complete-flow';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -187,6 +189,52 @@ export default function ConvitesAdminPage() {
       }
     } catch (error) {
       alert(`❌ Erro ao enviar: ${error}`);
+    }
+  };
+
+  const handleTestSystem = async () => {
+    try {
+      const result = await testInviteSystem();
+      console.log('Resultado do teste:', result);
+      if (result.success) {
+        alert('✅ Sistema funcionando corretamente!\nVerifique o console para detalhes.');
+      } else {
+        alert(`❌ Erro no sistema:\n${result.error}\n\nDetalhes no console.`);
+      }
+    } catch (error: any) {
+      console.error('Erro no teste:', error);
+      alert(`❌ Erro ao testar sistema:\n${error.message}`);
+    }
+  };
+
+  const handleTestFlow = async () => {
+    // Pegar o primeiro convite disponível
+    const { data: availableInvites } = await supabase
+      .from('invites')
+      .select('code')
+      .eq('status', 'unused')
+      .limit(1);
+
+    if (!availableInvites || availableInvites.length === 0) {
+      alert('❌ Nenhum convite disponível. Gere um convite primeiro!');
+      return;
+    }
+
+    const testCode = availableInvites[0].code;
+    alert(`🔧 Testando fluxo com código: ${testCode}\n\nVerifique o console...`);
+
+    try {
+      const result = await testCompleteFlow(testCode);
+      console.log('Resultado do fluxo completo:', result);
+      
+      if (result.success) {
+        alert(`✅ Fluxo completo funcionando!\n\nCódigo: ${testCode}\nMembro criado: ${result.member.email}\n\nDetalhes no console.`);
+      } else {
+        alert(`❌ Erro no passo: ${result.step}\n${result.error}\n\nDetalhes no console.`);
+      }
+    } catch (error: any) {
+      console.error('Erro no teste de fluxo:', error);
+      alert(`❌ Erro:\n${error.message}`);
     }
   };
 
@@ -447,6 +495,18 @@ export default function ConvitesAdminPage() {
                   className="w-full bg-gray-600 text-white hover:bg-gray-700"
                 >
                   Testar Webhook
+                </Button>
+                <Button
+                  onClick={handleTestSystem}
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  🔧 Testar Sistema Completo
+                </Button>
+                <Button
+                  onClick={handleTestFlow}
+                  className="w-full bg-purple-600 text-white hover:bg-purple-700"
+                >
+                  🧪 Testar Fluxo Completo (com código real)
                 </Button>
               </div>
 
