@@ -34,11 +34,6 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
       throw new Error(`Convite já foi utilizado (status atual: ${invite.status})`);
     }
 
-    // Validação do número de WhatsApp (se enviado)
-    if (whatsappNumber && !/^\d{11}$/.test(whatsappNumber)) {
-      throw new Error('Número de WhatsApp inválido (use 11 dígitos: DDD + número, ex: 11999999999)');
-    }
-
     // Atualizar o convite como usado
     console.log('[markInviteAsUsed] Executando UPDATE...');
     const { error: updateError, data: updateData, status } = await supabase
