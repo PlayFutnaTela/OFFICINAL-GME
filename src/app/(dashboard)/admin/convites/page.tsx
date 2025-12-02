@@ -48,11 +48,14 @@ export default function ConvitesAdminPage() {
   });
   const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [invitesWithUsers, setInvitesWithUsers] = useState<Array<Invite & { userName?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [quantity, setQuantity] = useState(5);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookSaved, setWebhookSaved] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const supabase = createClient();
 
@@ -103,6 +106,36 @@ export default function ConvitesAdminPage() {
           .order('created_at', { ascending: false });
 
         setInvites(invitesList || []);
+
+        // Buscar nomes/emails dos usuários que usaram os convites
+        if (invitesList && invitesList.length > 0) {
+          const usedInvites = invitesList.filter((inv) => inv.status === 'used' && inv.used_by);
+          
+          if (usedInvites.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, full_name, email')
+              .in('id', usedInvites.map((inv) => inv.used_by));
+
+            const profileMap = new Map(
+              (profiles || []).map((p) => [
+                p.id,
+                {
+                  name: p.full_name || p.email || 'Usuário sem nome',
+                },
+              ])
+            );
+
+            const invitesWithUserInfo = invitesList.map((invite) => ({
+              ...invite,
+              userName: invite.used_by ? profileMap.get(invite.used_by)?.name : undefined,
+            }));
+
+            setInvitesWithUsers(invitesWithUserInfo);
+          } else {
+            setInvitesWithUsers(invitesList);
+          }
+        }
 
         // Webhook do localStorage
         const saved = localStorage.getItem('webhookUrl');
@@ -351,55 +384,125 @@ export default function ConvitesAdminPage() {
         {/* Lista de Convites */}
         {tab === 'list' && (
           <div className="space-y-4">
-            {invites.length === 0 ? (
+            {invitesWithUsers.length === 0 ? (
               <p className="text-gray-500">Nenhum convite gerado ainda</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100 border-b">
-                      <th className="text-left p-4 font-medium">Código</th>
-                      <th className="text-left p-4 font-medium">Status</th>
-                      <th className="text-left p-4 font-medium">Categoria</th>
-                      <th className="text-center p-4 font-medium">Uso</th>
-                      <th className="text-left p-4 font-medium">Criado em</th>
-                      <th className="text-left p-4 font-medium">Notas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invites.map((invite) => (
-                      <tr key={invite.id} className="border-b hover:bg-gray-50">
-                        <td className="p-4 font-mono font-bold text-blue-600">{invite.code}</td>
-                        <td className="p-4">
-                          <span
-                            className={`px-3 py-1 rounded text-xs font-medium ${
-                              invite.status === 'unused'
-                                ? 'bg-green-100 text-green-800'
-                                : invite.status === 'used'
-                                ? 'bg-gray-100 text-gray-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {invite.status === 'unused' && '✓ Disponível'}
-                            {invite.status === 'used' && '✓ Usado'}
-                            {invite.status === 'disabled' && '✗ Desabilitado'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-sm">{invite.category || '-'}</td>
-                        <td className="p-4 text-center text-sm">
-                          {invite.times_used}/{invite.max_uses || '∞'}
-                        </td>
-                        <td className="p-4 text-sm text-gray-600">
-                          {new Date(invite.created_at).toLocaleDateString('pt-BR')}
-                        </td>
-                        <td className="p-4 text-sm text-gray-600 max-w-xs truncate">
-                          {invite.notes || '-'}
-                        </td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100 border-b">
+                        <th className="text-left p-4 font-medium">Código</th>
+                        <th className="text-left p-4 font-medium">Status</th>
+                        <th className="text-left p-4 font-medium">Categoria</th>
+                        <th className="text-left p-4 font-medium">Usuário</th>
+                        <th className="text-center p-4 font-medium">Uso</th>
+                        <th className="text-left p-4 font-medium">Criado em</th>
+                        <th className="text-left p-4 font-medium">Notas</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {invitesWithUsers
+                        .slice(
+                          (currentPage - 1) * itemsPerPage,
+                          currentPage * itemsPerPage
+                        )
+                        .map((invite) => (
+                          <tr key={invite.id} className="border-b hover:bg-gray-50">
+                            <td className="p-4 font-mono font-bold text-blue-600">{invite.code}</td>
+                            <td className="p-4">
+                              <span
+                                className={`px-3 py-1 rounded text-xs font-medium ${
+                                  invite.status === 'unused'
+                                    ? 'bg-green-100 text-green-800'
+                                    : invite.status === 'used'
+                                    ? 'bg-gray-100 text-gray-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {invite.status === 'unused' && '✓ Disponível'}
+                                {invite.status === 'used' && '✓ Usado'}
+                                {invite.status === 'disabled' && '✗ Desabilitado'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-sm">{invite.category || '-'}</td>
+                            <td className="p-4 text-sm text-gray-700">
+                              {invite.userName ? (
+                                <span className="font-medium">{invite.userName}</span>
+                              ) : (
+                                <span className="text-gray-400 italic">-</span>
+                              )}
+                            </td>
+                            <td className="p-4 text-center text-sm">
+                              {invite.times_used}/{invite.max_uses || '∞'}
+                            </td>
+                            <td className="p-4 text-sm text-gray-600">
+                              {new Date(invite.created_at).toLocaleDateString('pt-BR')}
+                            </td>
+                            <td className="p-4 text-sm text-gray-600 max-w-xs truncate">
+                              {invite.notes || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Paginação */}
+                <div className="flex items-center justify-between mt-6 px-4">
+                  <p className="text-sm text-gray-600">
+                    Mostrando {(currentPage - 1) * itemsPerPage + 1} a{' '}
+                    {Math.min(currentPage * itemsPerPage, invitesWithUsers.length)} de{' '}
+                    {invitesWithUsers.length} convites
+                  </p>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      variant="outline"
+                    >
+                      ← Anterior
+                    </Button>
+
+                    <div className="flex items-center gap-2">
+                      {Array.from({
+                        length: Math.ceil(invitesWithUsers.length / itemsPerPage),
+                      }).map((_, idx) => (
+                        <button
+                          key={idx + 1}
+                          onClick={() => setCurrentPage(idx + 1)}
+                          className={`px-3 py-1 rounded text-sm font-medium ${
+                            currentPage === idx + 1
+                              ? 'bg-black text-white'
+                              : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(
+                            Math.ceil(invitesWithUsers.length / itemsPerPage),
+                            prev + 1
+                          )
+                        )
+                      }
+                      disabled={
+                        currentPage ===
+                        Math.ceil(invitesWithUsers.length / itemsPerPage)
+                      }
+                      variant="outline"
+                    >
+                      Próxima →
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}

@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -53,6 +54,12 @@ export default function RegisterPage() {
       if (!user) throw new Error('Usuário não autenticado');
 
       const codeUpper = inviteCode.toUpperCase();
+      const whatsappClean = whatsapp ? whatsapp.replace(/\D/g, '').trim() : '';
+
+      // If provided, must be 11 digits (DDD+number)
+      if (whatsappClean && !/^\d{11}$/.test(whatsappClean)) {
+        throw new Error('Número de WhatsApp inválido. Use 11 dígitos, ex: 11999999999');
+      }
       console.log('Validando convite:', codeUpper);
 
       // Validar código no banco
@@ -82,7 +89,7 @@ export default function RegisterPage() {
       // ======================================
       console.log('→ Marcando convite como usado...');
       try {
-        const markResult = await markInviteAsUsed(codeUpper, user.id);
+        const markResult = await markInviteAsUsed(codeUpper, user.id, whatsappClean || null);
         console.log('✅ Convite marcado como usado:', markResult);
       } catch (markErr: any) {
         console.error('❌ Erro ao marcar convite como usado:', markErr);
@@ -95,7 +102,7 @@ export default function RegisterPage() {
       // ======================================
       console.log('→ Atualizando profile...');
       try {
-        const profileResult = await updateProfileWithInvite(user.id, codeUpper);
+        const profileResult = await updateProfileWithInvite(user.id, codeUpper, whatsappClean || null);
         console.log('✅ Profile atualizado:', profileResult);
       } catch (profileErr: any) {
         console.error('❌ Erro ao atualizar profile:', profileErr);
@@ -103,26 +110,7 @@ export default function RegisterPage() {
         throw new Error(`Erro ao atualizar perfil: ${errMsg}`);
       }
 
-      // Enviar webhook
-      try {
-        const webhookUrl = process.env.NEXT_PUBLIC_WEBHOOK_URL;
-        if (webhookUrl) {
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'user_registered_with_invite',
-              data: {
-                email: user.email,
-                code: inviteCode.toUpperCase(),
-                timestamp: new Date().toISOString(),
-              },
-            }),
-          });
-        }
-      } catch (err) {
-        console.error('Webhook error:', err);
-      }
+      // Webhook is sent server-side inside markInviteAsUsed
 
       console.log('✅ Convite validado e usuário aprovado!');
       setSuccess(true);
@@ -160,6 +148,20 @@ export default function RegisterPage() {
               <p className="text-gray-400 text-sm">
                 Sua conta foi criada com sucesso em {userEmail}
               </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">WhatsApp (DDD + número, ex: 11999999999)</label>
+              <Input
+                type="text"
+                placeholder="11999999999"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                disabled={loading}
+                inputMode="numeric"
+                className="bg-gray-800 border-gray-700"
+              />
+              <p className="text-xs text-gray-500 mt-2">Opcional — formate como 11 dígitos (DDD + número)</p>
             </div>
 
             <div>

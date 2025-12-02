@@ -10,8 +10,8 @@ const inter = Inter({ subsets: ["latin"] });
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "Gerezim",
-    description: "Plataforma de gestão de negócios",
+    title: "Gerezim.Club ⚜️",
+    description: "Private Club High Ticket",
     icons: {
         icon: '/logo-icon.ico',
     },

@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export async function markInviteAsUsed(code: string, userId: string) {
+export async function markInviteAsUsed(code: string, userId: string, whatsappNumber?: string | null) {
   const supabase = createAdminClient();
 
   console.log('[markInviteAsUsed] Iniciado:', { code, userId });
@@ -32,6 +32,11 @@ export async function markInviteAsUsed(code: string, userId: string) {
     // Validar se já foi usado
     if (invite.status !== 'unused') {
       throw new Error(`Convite já foi utilizado (status atual: ${invite.status})`);
+    }
+
+    // Validação do número de WhatsApp (se enviado)
+    if (whatsappNumber && !/^\d{11}$/.test(whatsappNumber)) {
+      throw new Error('Número de WhatsApp inválido (use 11 dígitos: DDD + número, ex: 11999999999)');
     }
 
     // Atualizar o convite como usado
@@ -72,6 +77,60 @@ export async function markInviteAsUsed(code: string, userId: string) {
       console.log('[markInviteAsUsed] ✅ times_used incrementado');
     }
 
+    // Buscar email do usuário para incluir no payload (tenta via auth.admin)
+    let userEmail: string | null = null;
+    try {
+      // admin API — pode retornar { data: { user } } or { data }
+      // supabase-js v2 exposes admin.getUserById
+      // try/catch to avoid breaking if API is missing
+      // @ts-ignore
+      const userResult = await supabase.auth.admin.getUserById(userId);
+      if (userResult && (userResult.data?.user?.email || userResult.data?.email)) {
+        userEmail = userResult.data.user?.email ?? userResult.data?.email ?? null;
+      }
+    } catch (e) {
+      console.warn('[markInviteAsUsed] não foi possível obter email via auth.admin.getUserById, tentando profiles');
+      try {
+        const { data: profileSelect } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .limit(1);
+        // profiles may not contain email column; don't assume
+        // If needed, could add later
+      } catch (_) {
+        // silent
+      }
+    }
+
+    // Enviar webhook (server-side) com whatsapp se definido
+    try {
+      const webhookUrl = process.env.WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBHOOK_URL;
+      if (webhookUrl) {
+        const body = {
+          type: 'user_registered_with_invite',
+          data: {
+            code: code.toUpperCase(),
+            invite_id: updateData?.[0]?.id || invite.id,
+            user_id: userId,
+            email: userEmail || null,
+            whatsapp: whatsappNumber || null,
+            timestamp: new Date().toISOString(),
+          },
+        };
+
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        console.log('[markInviteAsUsed] Webhook enviado', webhookUrl);
+      }
+    } catch (webhookErr: any) {
+      console.error('[markInviteAsUsed] Erro enviando webhook:', webhookErr);
+      // Não falhar o fluxo por causa do webhook
+    }
+
     return { success: true };
   } catch (err: any) {
     console.error('[markInviteAsUsed] ❌ ERRO FINAL:', err.message);
@@ -79,7 +138,7 @@ export async function markInviteAsUsed(code: string, userId: string) {
   }
 }
 
-export async function updateProfileWithInvite(userId: string, code: string) {
+export async function updateProfileWithInvite(userId: string, code: string, whatsappNumber?: string | null) {
   const supabase = createAdminClient();
 
   console.log('[updateProfileWithInvite] Iniciado:', { userId, code });
@@ -107,6 +166,7 @@ export async function updateProfileWithInvite(userId: string, code: string) {
         .insert({
           id: userId,
           invite_code: code.toUpperCase(),
+          whatsapp: whatsappNumber || null,
           joined_by_invite: code.toUpperCase(),
           joined_date: new Date().toISOString(),
         })
@@ -123,13 +183,21 @@ export async function updateProfileWithInvite(userId: string, code: string) {
 
     // Se existe, atualizar
     console.log('[updateProfileWithInvite] Atualizando profile existente...');
+    const updatePayload: any = {
+      // keep existing update fields, do not overwrite any other user profile fields
+      invite_code: code.toUpperCase(),
+      joined_by_invite: code.toUpperCase(),
+      joined_date: new Date().toISOString(),
+    };
+
+    // Only persist whatsapp if provided (don't overwrite existing value with null)
+    if (whatsappNumber) {
+      updatePayload.whatsapp = whatsappNumber;
+    }
+
     const { error: updateError, data: updateData } = await supabase
       .from('profiles')
-      .update({
-        invite_code: code.toUpperCase(),
-        joined_by_invite: code.toUpperCase(),
-        joined_date: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', userId)
       .select();
 
