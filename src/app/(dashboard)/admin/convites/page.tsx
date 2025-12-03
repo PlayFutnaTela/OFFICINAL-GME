@@ -112,10 +112,23 @@ export default function ConvitesAdminPage() {
           const usedInvites = invitesList.filter((inv) => inv.status === 'used' && inv.used_by);
           
           if (usedInvites.length > 0) {
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, full_name, email')
-              .in('id', usedInvites.map((inv) => inv.used_by));
+            // Build a cleaned, unique list of user ids that used invites.
+            // When there is a single id PostgREST can be picky about `in.(id)`
+            // (and some clients or encoders may end up generating malformed queries),
+            // so use `.eq` for single values and `.in` only for arrays of length > 1.
+            const usedIds = Array.from(
+              new Set(usedInvites.map((inv) => inv.used_by).filter(Boolean))
+            );
+
+            let profilesQuery = supabase.from('profiles').select('id, full_name, email');
+
+            if (usedIds.length === 1) {
+              profilesQuery = profilesQuery.eq('id', usedIds[0]);
+            } else {
+              profilesQuery = profilesQuery.in('id', usedIds);
+            }
+
+            const { data: profiles } = await profilesQuery;
 
             const profileMap = new Map(
               (profiles || []).map((p) => [
