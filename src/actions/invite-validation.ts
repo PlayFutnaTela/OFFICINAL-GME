@@ -3,24 +3,16 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function markInviteAsUsed(code: string, userId: string, whatsappNumber?: string | null) {
-  console.log('[markInviteAsUsed] ========== INICIANDO ==========');
-  console.log('[markInviteAsUsed] Input params:', { code, userId, hasWhatsapp: !!whatsappNumber });
+  console.log('[markInviteAsUsed] START code=', code);
   
-  let supabase;
+  let supabase: any;
   try {
-    console.log('[markInviteAsUsed] Tentando criar admin client...');
     supabase = createAdminClient();
-    console.log('[markInviteAsUsed] ✅ Admin client criado com sucesso');
-  } catch (clientErr: any) {
-    console.error('[markInviteAsUsed] ❌ Erro CRÍTICO ao criar admin client:', {
-      message: clientErr.message,
-      stack: clientErr.stack,
-      type: clientErr.constructor?.name,
-    });
-    throw new Error(`Erro ao inicializar cliente administrativo: ${clientErr.message}`);
+  } catch (e: any) {
+    const msg = String(e?.message || e);
+    console.error('[markInviteAsUsed] Admin client error:', msg);
+    throw new Error(`Client init: ${msg}`);
   }
-
-  console.log('[markInviteAsUsed] Iniciado:', { code, userId });
 
   try {
     // Buscar o convite com segurança
