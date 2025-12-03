@@ -119,7 +119,7 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
           type: 'user_registered_with_invite',
           data: {
             code: code.toUpperCase(),
-            invite_id: updateData?.[0]?.id || invite.id,
+            invite_id: invite.id,
             user_id: userId,
             email: userEmail || null,
             whatsapp: whatsappNumber || null,
