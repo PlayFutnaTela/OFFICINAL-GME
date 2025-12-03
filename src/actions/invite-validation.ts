@@ -49,19 +49,16 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
 
     // Atualizar o convite como usado
     console.log('[markInviteAsUsed] → Executando UPDATE de invites...');
-    const { error: updateError, data: updateData, status } = await supabase
+    const { error: updateError } = await supabase
       .from('invites')
       .update({
         status: 'used',
         used_by: userId,
         used_at: new Date().toISOString(),
       })
-      .eq('code', code.toUpperCase())
-      .select();
+      .eq('code', code.toUpperCase());
 
     console.log('[markInviteAsUsed] UPDATE resultado:', {
-      status,
-      dataCount: updateData?.length,
       error: updateError?.message,
       errorCode: updateError?.code,
       errorDetails: updateError?.details,
@@ -70,11 +67,6 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
     if (updateError) {
       console.error('[markInviteAsUsed] ❌ Erro UPDATE completo:', updateError);
       throw new Error(`Erro ao atualizar convite: ${updateError.message}`);
-    }
-
-    if (!updateData || updateData.length === 0) {
-      console.error('[markInviteAsUsed] ❌ UPDATE não retornou dados');
-      throw new Error('Falha ao atualizar convite (sem dados retornados)');
     }
 
     console.log('[markInviteAsUsed] ✅ Convite atualizado com sucesso');
