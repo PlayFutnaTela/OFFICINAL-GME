@@ -115,6 +115,7 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
       });
       
       if (webhookUrl) {
+        console.log('[markInviteAsUsed] Iniciando webhook para URL:', webhookUrl);
         const body = {
           type: 'user_registered_with_invite',
           data: {
@@ -133,15 +134,16 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
           body: JSON.stringify(body),
         });
 
-        console.log('[markInviteAsUsed] Webhook enviado:', {
+        console.log('[markInviteAsUsed] Webhook enviado com sucesso:', {
           status: webhookResponse.status,
           ok: webhookResponse.ok,
+          response: await webhookResponse.text(),
         });
       } else {
-        console.warn('[markInviteAsUsed] ⚠️ Nenhuma webhook URL configurada');
+        console.log('[markInviteAsUsed] Webhook não configurado');
       }
     } catch (webhookErr: any) {
-      console.error('[markInviteAsUsed] ⚠️ Erro enviando webhook (não crítico):', webhookErr.message);
+      console.error('[markInviteAsUsed] Erro no fetch do webhook:', webhookErr.message);
       // Não falhar o fluxo por causa do webhook
     }
 

@@ -15,17 +15,23 @@ O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para ges
 - **Gráficos**: Google Charts, Recharts
 - **Animações**: Framer Motion
 - **Gerenciamento de Dependências**: npm
+ - **Toasts**: Sonner
+ - **3D/GLSL**: react-three-fiber, three.js, ShaderMaterials personalizados
+ - **Menus e Interações**: componentes customizados em `style/` (ex.: `appmenu.tsx`, `efeito-sidebar.tsx`)
 
 ### Backend
 - **Backend as a Service**: Supabase (Autenticação, Banco de Dados, Armazenamento)
 - **Banco de Dados**: PostgreSQL
 - **Autenticação**: Supabase Auth
 - **Storage**: Supabase Storage para imagens
+ - **RLS (Row Level Security)**: políticas finas por tabela com funções auxiliares
+ - **RPC Functions**: funções definidas no banco para leitura administrativa segura
 
 ### Infraestrutura
 - **Frontend**: Next.js App Router com Server Actions para operações que requerem autenticação
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Estilo**: Tailwind CSS com componentes acessíveis
+ - **Deploy**: Vercel, com `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` configurados
 
 ### Ferramentas / Bibliotecas adicionais (adicionadas / utilizadas recentemente)
 - **react-three-fiber / three.js** — usado para efeitos gráficos 3D e planos com shaders (ex.: `style/shader1.tsx`, `style/shader-bg.tsx`).
@@ -33,11 +39,16 @@ O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para ges
 - **Sonner** — biblioteca usada para os toasts informativos (ex.: `src/components/ui/sonner.tsx`).
 - **Framer Motion** — animações e transições (diversos componentes UI como `style/appmenu.tsx`, `style/efeito-sidebar.tsx` e outros).  
 - **@supabase/ssr / createBrowserClient** — utilização do cliente Supabase para browser/SSR (com atenção para uso em server-side - ver observações de build).
+ - **Lucide React** — ícones consistentes em toda a UI.
+ - **Radix UI** — acessibilidade e patterns de UI robustos (dropdowns, dialogs).
+ - **Tailwind Plugins** — configuração central em `tailwind.config.ts` e `postcss.config.js`.
 
 ### Ferramentas Adicionadas Recentemente (Sistema de Tarefas e Timeline)
 - **Server Actions** — implementadas para gerenciamento de tarefas de forma segura no servidor
 - **Supabase RLS Policies** — políticas de segurança em nível de linha para controle de acesso baseado em role (admin)
 - **Supabase RPC Functions** — funções PostgreSQL que ignoram RLS para leitura de logs administrativos
+ - **Admin Checks** — endpoint `GET /api/auth/check-admin` para verificação de permissões.
+ - **Logs com bypass seguro** — `get_opportunity_logs()` com SECURITY DEFINER.
 
 ## Estrutura do Projeto
 
@@ -48,11 +59,46 @@ O projeto está dividido em duas partes principais:
 - `src/components/` - Componentes reutilizáveis
 - `src/lib/supabase/` - Configuração e clientes do Supabase
 - `src/components/ui/` - Componentes de UI do shadcn
+ - `src/actions/` - Server Actions para tarefas, convites, membros, links e logs
+ - `src/app/api/` - Rotas API (ex.: `auth/check-admin`)
+ - `style/` - Componentes visuais e efeitos (3D, shaders, carrossel)
 
 ### Backend (`/backend`)
 - `schema.sql` - Script de criação do banco de dados com RLS (Row Level Security)
 - `seed.sql` - Dados de exemplo para testes
 - `migrations/` - Pasta para futuras migrações de banco
+  - `20251126_add_currency_to_products.sql`
+  - `20251126_add_products_rls_policies.sql`
+  - `20251126_add_role_to_profiles.sql`
+  - `20251126_fix_profiles_rls_with_is_admin.sql`
+  - `20251130_add_interests_to_profiles.sql`
+  - `20251201_add_invite_code_to_profiles.sql`
+  - `20251201_create_invites_system.sql`
+  - `20251201_fix_invites_rls_for_users.sql`
+  - `20251201_fix_invites_update_policy.sql`
+  - `20251201_fix_profiles_insert_policy.sql`
+  - `20251202_add_whatsapp_to_profiles.sql`
+  - `admin_opportunities_policy.sql`
+  - `allow_tasks_for_products.sql`
+  - `check_and_populate_logs.sql`
+  - `check_policy.sql`
+  - `check_user_role.sql`
+  - `create_get_logs_function.sql`
+  - `create_increment_function.sql`
+  - `create_links_table.sql`
+  - `debug_complete.sql`
+  - `debug_opportunity_logs_rls.sql`
+  - `debug_rls.sql`
+  - `diagnose_logs.sql`
+  - `fix_admins_full_control.sql`
+  - `fix_invites_policy_final.sql`
+  - `fix_invites_policy.sql`
+  - `fix_opportunity_logs_rls_for_products.sql`
+  - `fix_profiles_constraint.sql`
+  - `fix_rls_complete.sql`
+  - `rls_admins_only.sql`
+  - `tarefas_sistema.sql`
+  - `verify_logs_and_tasks.sql`
 
 ## Atualizações e correções recentes (resumo técnico)
 
@@ -62,6 +108,8 @@ O projeto está dividido em duas partes principais:
 - Correções de tipagem e compatibilidade TypeScript em vários componentes para passar as checagens de tipo durante `next build` (ex.: `src/components/auth-monitor.tsx`, `src/components/ui/avatar.tsx`, `src/components/opportunities-store.tsx`, `src/components/product-list.tsx`).
 - Ajustes em componentes com Framer Motion para respeitar tipos e evitar erros de compilação (`style/appmenu.tsx`, `style/efeito-sidebar.tsx`).
 - Integração com shaders (react-three) tipada via `args` para o `shaderMaterial` (ex.: `style/shader1.tsx`) evitando erros de tipos durante build.
+ - Organização do `style/` com efeitos visuais (carrossel infinito, hover, shader background, gráfico Regional HTML).
+ - Configuração de Tailwind e PostCSS atualizada para suportar o design system.
 
 ### Correções do Sistema de Tarefas e Timeline (Novo)
 
@@ -76,6 +124,8 @@ O projeto está dividido em duas partes principais:
 - **Verificação de Permissões Assíncrona** — Implementado endpoint `/api/auth/check-admin` e integração no componente `OpportunityTimeline` com handling correto de race conditions (retorna `null` durante verificação).
 
 - **Logging Detalhado** — Adicionados console.logs prefixados (ex.: `[functionName]`) em todas as operações de tarefas e logs para facilitar debugging em produção.
+ - **Políticas de tarefas** — Permissão explícita para associação de tarefas a produtos com `allow_tasks_for_products.sql`.
+ - **Diagnóstico e verificação** — Scripts auxiliares para auditar RLS e logs (`diagnose_logs.sql`, `verify_logs_and_tasks.sql`).
 
 ## Banco de Dados
 
@@ -133,6 +183,16 @@ O projeto está dividido em duas partes principais:
 - Leitura restrita a usuários com role 'adm' (verificado via função `public.is_admin()`)
 - Criação de logs permitida para todas operações do sistema
 - Função RPC `get_opportunity_logs(p_opportunity_id UUID)` com SECURITY DEFINER para contorno seguro de RLS
+ 
+ #### 6. `profiles` (Perfis) [ATUALIZADO]
+ - Campos adicionais: `role` (admin/usuario), `invite_code`, `whatsapp`, `interests`
+ - Políticas corrigidas para inserção e leitura segura, com checks de admin.
+ 
+ #### 7. `links` (Links compartilháveis) [NOVO]
+ - Tabela criada por `create_links_table.sql` para gerenciamento de links externos.
+ 
+ #### 8. `products` (Produtos) [ATUALIZADO]
+ - Campo `currency` adicionado, RLS ajustadas para leitura/associação com tarefas.
 
 ## Segurança e Permissões
 
@@ -143,6 +203,8 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 3. Apenas proprietários podem fazer alterações em seus registros
 4. Interações estão vinculadas aos contatos e, por extensão, ao usuário
 5. Acesso a imagens é controlado (upload por autenticados, leitura pública)
+ 6. Verificação assíncrona de admin via API (`/api/auth/check-admin`) e função `public.is_admin()`
+ 7. RPC com SECURITY DEFINER para leitura administrativa de logs
 
 ## Funcionalidades do Sistema
 
@@ -178,6 +240,7 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
   - Status e estágio no pipeline
 - Filtros e ordenação
 - Integração com WhatsApp para compartilhamento
+ - Suporte a links públicos com `links` e políticas adequadas
 
 ### 4. Gestão de Clientes
 - Cadastro e visualização de clientes
@@ -208,12 +271,17 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Informações como título, subtítulo, preço, comissão
 - Controle de estoque
 - Categorização
+ - Moeda configurável por produto
 
 ### 8. Integrações
 - Supabase Storage para imagens
 - Integração com WhatsApp para compartilhamento de oportunidades
 - Google Charts para visualização de dados
 - Supabase Auth para autenticação
+ - RPCs e Server Actions para operações seguras
+ - Sonner para feedback instantâneo ao usuário
+ - Radix UI e Shadcn para acessibilidade e consistência visual
+ - React Three Fiber para efeitos visuais diferenciados
 
 ### 9. Sistema de Tarefas e Timeline (Novo)
 - Gestão de tarefas associadas a oportunidades/produtos:
@@ -227,18 +295,25 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
   - Timestamps com formatação de tempo relativo (minutos, horas, dias)
 - Logging centralizado via Server Actions com tratamento de erros robusto
 - API endpoint `/api/auth/check-admin` para verificação assíncrona de permissões
+ - Associação de tarefas a oportunidades e produtos
+ - Filtros por status e ordenação
+ - Ações com feedback via toasts
 
 ### Observações de Build / Deploy (Vercel)
 
 - O projeto roda em Next.js 14 — Vercel executa `npm run build` em cada deploy e precisa das variáveis públicas do Supabase definidas na interface da Vercel.  Configurar **exatamente**: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (valores públicos do projeto supabase) para `Preview` e `Production`.
 - Evite comitar `node_modules` e arquivos build (`.next`) — eles foram removidos do histórico do repo e listados no `.gitignore`.
 - Teste o build localmente antes do push: `npm run build` — durante desenvolvimento verifique mensagens sobre SSR (ex.: `document is not defined`) que indicam código que toca `window`/`document` no lado do servidor.
+ - Verifique clientes Supabase SSR (`@supabase/ssr`) e guards em `src/lib/supabase/client.ts`.
+ - Mantenha variáveis de ambiente em Vercel para Preview/Production, com regiões próximas ao Supabase.
 
 ## Boas práticas e recomendações (deploy / infra)
 
 - Em ambientes serverless (Vercel) prefira clientes Supabase que funcionem no servidor ou proteja acessos dependentes do DOM (cookies/`localStorage`) com guards — isso evita erros durante a exportação/prerender.
 - Mantenha a região das Functions na Vercel próxima ou igual à região do Supabase para reduzir latência entre funções e banco.
 - Para arquivos grandes ou binários nativos (p.ex.: `next-swc` em `node_modules`), não mantenha versões binárias no histórico do Git — use `.gitignore` e Git LFS se precisar armazenar arquivos maiores que 100MB.
+ - Utilize scripts SQL de diagnóstico para validar políticas RLS em ambientes novos antes do tráfego real.
+ - Centralize logs críticos via RPC para auditoria administrativa quando necessário.
 
 ## Características Técnicas
 
@@ -248,18 +323,22 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Uso de Server Components para operações que requerem autenticação
 - Client Components para interatividade
 - Componentes UI acessíveis via Radix UI e Shadcn
+ - Efeitos 3D e shaders customizados quando aplicável
+ - Toasts para feedback de usuário em ações sensíveis
 
 ### Performance e Escalabilidade
 - Uso de Server Actions para operações que requerem autenticação
 - Fetch otimizado no servidor para dados protegidos
 - Lazy loading potencial nos componentes
 - CDN para assets estáticos via Next.js
+ - SSR com guards para evitar acesso indevido ao `window`/`document`
 
 ### Segurança
 - RLS configurado no Supabase para isolamento de dados por usuário
 - Autenticação centralizada via Supabase
 - Proteção contra acesso não autorizado
 - Validação de dados no banco de dados
+ - Verificação e logs administrativos com segurança reforçada
 
 ### Design e Usabilidade
 - Interface responsiva com Tailwind CSS
@@ -267,6 +346,8 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Componentes acessíveis
 - Animações suaves com Framer Motion
 - Gráficos interativos com tooltips explicativos
+ - Ícones consistentes com Lucide
+ - Carrossel e efeitos de hover/customização no `style/`
 
 ## Recursos Implementados
 
@@ -338,6 +419,7 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
   - Timestamps com formatação relativa (minutos, horas, dias)
   - Ícones diferenciados por tipo de atividade
   - Verificação assíncrona de permissões sem race conditions
+    - Integração com Sonner para feedback
 
 - **`task-form.tsx`** - [NOVO] Formulário para criar/editar tarefas
   - Campos: título, descrição, status, prioridade, data de vencimento
@@ -368,12 +450,16 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
   - `get_opportunity_logs(p_opportunity_id UUID)`
   - SECURITY DEFINER para bypass de RLS
   - Retorna logs com nomes de usuários via LEFT JOIN
+ - **`allow_tasks_for_products.sql`** - Permite vincular tarefas a produtos
+ - **`check_and_populate_logs.sql`** - Rotina para checagem/preenchimento de logs
+ - **`verify_logs_and_tasks.sql`** - Verificações de integridade dos logs e tarefas
 
 ### Scripts Disponíveis
 - `npm run dev` - Iniciar servidor de desenvolvimento
 - `npm run build` - Criar build de produção
 - `npm run start` - Iniciar servidor de produção
 - `npm run lint` - Executar linter
+ - (Opcional) `npm run typecheck` - Validar tipos durante CI/CD
 
 ## Considerações e Recomendações
 
@@ -387,6 +473,10 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - **[NOVO]** Sistema de tarefas com logging automático de atividades
 - **[NOVO]** Timeline administrativo com registro detalhado de operações
 - **[NOVO]** Controle de acesso baseado em roles com verificação assíncrona
+ - **[NOVO]** Efeitos visuais 3D e shaders customizados
+ - **[NOVO]** Feedback consistente com toasts (Sonner)
+ - **[NOVO]** Políticas RLS abrangentes com scripts de diagnóstico
+ - **[NOVO]** Integração de links compartilháveis e associação de tarefas a produtos
 
 ### Melhorias Potenciais
 - Implementação de testes unitários e de integração para Server Actions
@@ -397,12 +487,17 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Filtros avançados na timeline (por tipo de atividade, data, usuário)
 - Exportação de timeline como PDF/CSV para auditoria
 - Sistema de permissões mais granular além de admin/não-admin
+ - Monitoramento de performance dos shaders e fallback para dispositivos mais simples
+ - CI/CD com typecheck e validações de build em PRs
 
 ### Escalabilidade
 - O sistema está bem estruturado para escalar horizontalmente
 - Uso de Supabase facilita o gerenciamento de banco de dados
 - Componentes modulares permitem adição de novas funcionalidades
+ - Scripts e migrations organizados agilizam evolução de schema e políticas
 
 ## Conclusão
 
 O sistema GEREZIM é um MVP bem estruturado e funcional que atende às necessidades básicas de uma plataforma de intermediação de negócios. Com um dashboard completo e gráficos interativos, o sistema oferece insights valiosos sobre o desempenho de vendas. A arquitetura baseada em Next.js e Supabase fornece uma base sólida para extensões e melhorias futuras.
+ 
+ Com as melhorias recentes — tarefas com logging, timeline administrativa, RPC segura, RLS robusta, efeitos visuais e feedback instantâneo — o projeto está pronto para evoluir com confiabilidade e uma experiência de usuário superior.
