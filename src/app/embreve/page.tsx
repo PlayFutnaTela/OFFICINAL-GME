@@ -1,5 +1,6 @@
 import React from 'react'
 import { Metadata } from 'next'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Em Breve | Gerezim.Club',
@@ -9,8 +10,19 @@ export const metadata: Metadata = {
 export default function EmBrevePage() {
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center bg-navy-700 p-4 text-center">
-      <div className="max-w-2xl space-y-8 animate-in fade-in zoom-in duration-1000">
-        
+      <div className="max-w-2xl space-y-8 animate-in fade-in zoom-in duration-1000 flex flex-col items-center">
+
+        {/* Logo */}
+        <div className="relative w-32 h-32 md:w-40 md:h-40 mb-4">
+          <Image
+            src="/logo-novo-gme.png"
+            alt="Gerezim Club Logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+
         {/* Decorative Element */}
         <div className="flex justify-center mb-6">
           <div className="h-1 w-24 bg-gold-500 rounded-full" />
