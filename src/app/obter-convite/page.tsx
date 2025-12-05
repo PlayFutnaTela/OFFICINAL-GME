@@ -177,7 +177,7 @@ export default function ObterConvitePage() {
               onClick={handleSuccessOk}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-2 px-4 rounded hover:from-green-600 hover:to-green-700 transition"
             >
-              Ok, Continuar para Oportunidades
+              Ok, Obrigado!
             </Button>
           </div>
         )}

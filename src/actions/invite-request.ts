@@ -105,16 +105,27 @@ export async function submitInviteRequest(
     console.log('[submitInviteRequest] Tentando buscar webhook do banco...');
     const supabase = createAdminClient();
     
+    // Buscar TODOS os webhooks para debug
+    const { data: allWebhooks, error: allError } = await supabase
+      .from('webhook_configurations')
+      .select('*');
+    
+    console.log('[submitInviteRequest] Todos os webhooks no banco:', {
+      data: allWebhooks,
+      error: allError?.message,
+    });
+
+    // Agora buscar especificamente o de invite_request
     const { data: webhookData, error: webhookError } = await supabase
       .from('webhook_configurations')
-      .select('webhook_url')
-      .eq('event_type', 'invite_request')
-      .eq('active', true);
+      .select('webhook_url, event_type, active')
+      .eq('event_type', 'invite_request');
 
-    console.log('[submitInviteRequest] Resultado da busca:', {
+    console.log('[submitInviteRequest] Busca específica por invite_request:', {
       data: webhookData,
       error: webhookError?.message,
       dataLength: webhookData?.length,
+      firstItem: webhookData?.[0],
     });
 
     if (webhookError) {
@@ -128,7 +139,7 @@ export async function submitInviteRequest(
     }
 
     const webhookUrl = webhookData[0]?.webhook_url;
-    console.log('[submitInviteRequest] URL do webhook encontrada:', webhookUrl);
+    console.log('[submitInviteRequest] ✅ URL do webhook encontrada:', webhookUrl);
 
     if (!webhookUrl) {
       return { success: false, error: 'URL do webhook inválida.' };
