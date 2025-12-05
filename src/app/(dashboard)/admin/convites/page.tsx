@@ -5,6 +5,7 @@ import { createInvites } from '@/actions/invites';
 import { approveMember, rejectMember } from '@/actions/members';
 import { testInviteSystem } from '@/actions/test-invites';
 import { testCompleteFlow } from '@/actions/test-complete-flow';
+import { getWebhookUrl, updateWebhookUrl } from '@/actions/webhook-config';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,9 +151,11 @@ export default function ConvitesAdminPage() {
           }
         }
 
-        // Webhook do localStorage
-        const saved = localStorage.getItem('webhookUrl');
-        if (saved) setWebhookUrl(saved);
+        // Carregar webhook do banco de dados
+        const webhookResult = await getWebhookUrl();
+        if (webhookResult.success && webhookResult.webhookUrl) {
+          setWebhookUrl(webhookResult.webhookUrl);
+        }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -197,11 +200,24 @@ export default function ConvitesAdminPage() {
     }
   };
 
-  const handleSaveWebhook = () => {
-    localStorage.setItem('webhookUrl', webhookUrl);
-    process.env.WEBHOOK_URL = webhookUrl;
-    setWebhookSaved(true);
-    setTimeout(() => setWebhookSaved(false), 3000);
+  const handleSaveWebhook = async () => {
+    if (!webhookUrl) {
+      alert('Por favor, insira uma URL válida');
+      return;
+    }
+
+    try {
+      const result = await updateWebhookUrl(webhookUrl);
+      if (result.success) {
+        setWebhookSaved(true);
+        alert('✅ URL do webhook salva com sucesso no banco de dados!');
+        setTimeout(() => setWebhookSaved(false), 3000);
+      } else {
+        alert(`❌ Erro ao salvar: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro: ${error}`);
+    }
   };
 
   const handleTestWebhook = async () => {

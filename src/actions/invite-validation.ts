@@ -108,10 +108,30 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
     // Enviar webhook (server-side) com whatsapp se definido
     console.log('[markInviteAsUsed] → Enviando webhook...');
     try {
-      const webhookUrl = process.env.WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBHOOK_URL;
+      // Buscar URL do webhook do banco de dados
+      const { data: webhookConfig, error: webhookConfigError } = await supabase
+        .from('webhook_configurations')
+        .select('webhook_url')
+        .eq('event_type', 'user_registered_with_invite')
+        .eq('active', true)
+        .limit(1);
+
+      console.log('[markInviteAsUsed] Webhook config buscada:', {
+        found: webhookConfig?.length,
+        error: webhookConfigError?.message,
+      });
+
+      if (webhookConfigError) {
+        console.error('[markInviteAsUsed] Erro ao buscar webhook config:', webhookConfigError);
+        // Continuar mesmo sem webhook
+      }
+
+      const webhookUrl = webhookConfig?.[0]?.webhook_url || process.env.WEBHOOK_URL;
+      
       console.log('[markInviteAsUsed] Webhook URL:', { 
         hasWebhookUrl: !!webhookUrl,
-        fromEnv: webhookUrl ? 'WEBHOOK_URL' : 'NEXT_PUBLIC_WEBHOOK_URL',
+        fromDb: !!webhookConfig?.[0]?.webhook_url,
+        fromEnv: !webhookConfig?.[0]?.webhook_url && !!process.env.WEBHOOK_URL,
       });
       
       if (webhookUrl) {
@@ -140,7 +160,7 @@ export async function markInviteAsUsed(code: string, userId: string, whatsappNum
           response: await webhookResponse.text(),
         });
       } else {
-        console.log('[markInviteAsUsed] Webhook não configurado');
+        console.log('[markInviteAsUsed] Webhook não configurado no banco ou env');
       }
     } catch (webhookErr: any) {
       console.error('[markInviteAsUsed] Erro no fetch do webhook:', webhookErr.message);
