@@ -6,6 +6,10 @@ import { approveMember, rejectMember } from '@/actions/members';
 import { testInviteSystem } from '@/actions/test-invites';
 import { testCompleteFlow } from '@/actions/test-complete-flow';
 import { getWebhookUrl, updateWebhookUrl } from '@/actions/webhook-config';
+import { 
+  getInviteRequestWebhookUrl, 
+  updateInviteRequestWebhookUrl 
+} from '@/actions/invite-request';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +59,8 @@ export default function ConvitesAdminPage() {
   const [quantity, setQuantity] = useState(5);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookSaved, setWebhookSaved] = useState(false);
+  const [inviteRequestWebhookUrl, setInviteRequestWebhookUrl] = useState('');
+  const [inviteRequestWebhookSaved, setInviteRequestWebhookSaved] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -155,6 +161,12 @@ export default function ConvitesAdminPage() {
         const webhookResult = await getWebhookUrl();
         if (webhookResult.success && webhookResult.webhookUrl) {
           setWebhookUrl(webhookResult.webhookUrl);
+        }
+
+        // Carregar webhook de solicitação de convite
+        const inviteRequestResult = await getInviteRequestWebhookUrl();
+        if (inviteRequestResult.success && inviteRequestResult.webhookUrl) {
+          setInviteRequestWebhookUrl(inviteRequestResult.webhookUrl);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -266,6 +278,59 @@ export default function ConvitesAdminPage() {
     } catch (error: any) {
       console.error('Erro no teste:', error);
       alert(`❌ Erro ao testar sistema:\n${error.message}`);
+    }
+  };
+
+  const handleSaveInviteRequestWebhook = async () => {
+    if (!inviteRequestWebhookUrl) {
+      alert('Por favor, insira uma URL válida');
+      return;
+    }
+
+    try {
+      const result = await updateInviteRequestWebhookUrl(inviteRequestWebhookUrl);
+      if (result.success) {
+        setInviteRequestWebhookSaved(true);
+        alert('✅ URL do webhook de solicitação de convite salva com sucesso no banco de dados!');
+        setTimeout(() => setInviteRequestWebhookSaved(false), 3000);
+      } else {
+        alert(`❌ Erro ao salvar: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro: ${error}`);
+    }
+  };
+
+  const handleTestInviteRequestWebhook = async () => {
+    const url = inviteRequestWebhookUrl;
+    if (!url) {
+      alert('Nenhuma URL configurada para solicitação de convite');
+      return;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'test_invite_request',
+          timestamp: new Date().toISOString(),
+          data: {
+            nome: 'Teste Solicitação',
+            email: 'teste@gerezim.com',
+            whatsapp: '11999999999',
+            motivo: 'Teste de webhook de solicitação de convite',
+          },
+        }),
+      });
+
+      if (response.ok) {
+        alert('✅ Webhook de solicitação enviado com sucesso!');
+      } else {
+        alert(`❌ Erro: ${response.statusText}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro ao enviar: ${error}`);
     }
   };
 
@@ -591,43 +656,130 @@ export default function ConvitesAdminPage() {
         {/* Webhook */}
         {tab === 'webhook' && (
           <div className="bg-white p-6 rounded-lg border max-w-2xl">
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Seção 1: Webhook de Novo Cadastro */}
               <div>
-                <label className="block text-sm font-medium mb-2">URL do Webhook</label>
-                <Input
-                  type="url"
-                  placeholder="https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/convitegerezim"
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  URL para receber notificações quando um candidato preenche o formulário
-                </p>
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Notificação de Novo Cadastro</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">URL do Webhook</label>
+                    <Input
+                      type="url"
+                      placeholder="https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/convitegerezim"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      URL para receber notificações quando um candidato preenche o formulário
+                    </p>
+                  </div>
+
+                  {/* Webhook padrão */}
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded">
+                    <p className="text-xs font-medium text-blue-900 mb-2">URL Padrão (em uso agora):</p>
+                    <p className="text-xs text-blue-800 break-all">
+                      {webhookUrl || 'Carregando...'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleSaveWebhook}
+                      disabled={!webhookUrl}
+                      className="w-full bg-black text-white"
+                    >
+                      {webhookSaved ? '✅ Salvo!' : 'Salvar URL'}
+                    </Button>
+                    <Button
+                      onClick={handleTestWebhook}
+                      disabled={!webhookUrl}
+                      className="w-full bg-gray-600 text-white hover:bg-gray-700"
+                    >
+                      Testar Webhook
+                    </Button>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded text-xs">
+                    <p className="font-medium mb-2">O webhook receberá JSON assim:</p>
+                    <pre className="overflow-auto text-gray-700">{`{
+  "type": "user_registered_with_invite",
+  "data": {
+    "code": "GZM-A9KQ12",
+    "invite_id": "...",
+    "user_id": "...",
+    "email": "joao@example.com",
+    "whatsapp": "11999999999",
+    "timestamp": "2025-12-05T20:00:00Z"
+  }
+}`}</pre>
+                  </div>
+                </div>
               </div>
 
-              {/* Webhook padrão */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded">
-                <p className="text-xs font-medium text-blue-900 mb-2">URL Padrão (em uso agora):</p>
-                <p className="text-xs text-blue-800 break-all">
-                  {process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/convitegerezim'}
-                </p>
+              <hr className="my-6" />
+
+              {/* Seção 2: Webhook de Solicitação de Convite */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Solicitação de Convite</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">URL do Webhook</label>
+                    <Input
+                      type="url"
+                      placeholder="https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/solicitacao-convite"
+                      value={inviteRequestWebhookUrl}
+                      onChange={(e) => setInviteRequestWebhookUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      URL para receber notificações de solicitações de convite
+                    </p>
+                  </div>
+
+                  {/* Webhook padrão */}
+                  <div className="bg-green-50 border border-green-200 p-4 rounded">
+                    <p className="text-xs font-medium text-green-900 mb-2">URL em Uso Agora:</p>
+                    <p className="text-xs text-green-800 break-all">
+                      {inviteRequestWebhookUrl || 'Carregando...'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleSaveInviteRequestWebhook}
+                      disabled={!inviteRequestWebhookUrl}
+                      className="w-full bg-black text-white"
+                    >
+                      {inviteRequestWebhookSaved ? '✅ Salvo!' : 'Salvar URL'}
+                    </Button>
+                    <Button
+                      onClick={handleTestInviteRequestWebhook}
+                      disabled={!inviteRequestWebhookUrl}
+                      className="w-full bg-gray-600 text-white hover:bg-gray-700"
+                    >
+                      Testar Webhook
+                    </Button>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded text-xs">
+                    <p className="font-medium mb-2">O webhook receberá JSON assim:</p>
+                    <pre className="overflow-auto text-gray-700">{`{
+  "type": "invite_request",
+  "data": {
+    "nome": "João Silva",
+    "email": "joao@example.com",
+    "whatsapp": "11999999999",
+    "motivo": "Desejo participar da Gerezim para expandir minha rede de negócios",
+    "timestamp": "2025-12-05T20:00:00Z"
+  }
+}`}</pre>
+                  </div>
+                </div>
               </div>
 
+              <hr className="my-6" />
+
+              {/* Botões de Teste do Sistema */}
               <div className="space-y-2">
-                <Button
-                  onClick={handleSaveWebhook}
-                  disabled={!webhookUrl}
-                  className="w-full bg-black text-white"
-                >
-                  {webhookSaved ? '✅ Salvo!' : 'Salvar URL'}
-                </Button>
-                <Button
-                  onClick={handleTestWebhook}
-                  disabled={!webhookUrl}
-                  className="w-full bg-gray-600 text-white hover:bg-gray-700"
-                >
-                  Testar Webhook
-                </Button>
                 <Button
                   onClick={handleTestSystem}
                   className="w-full bg-blue-600 text-white hover:bg-blue-700"
@@ -640,20 +792,6 @@ export default function ConvitesAdminPage() {
                 >
                   🧪 Testar Fluxo Completo (com código real)
                 </Button>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded text-xs">
-                <p className="font-medium mb-2">O webhook receberá JSON assim:</p>
-                <pre className="overflow-auto text-gray-700">{`{
-  "type": "new_pending_member",
-  "data": {
-    "name": "João Silva",
-    "email": "joao@example.com",
-    "phone": "+55 11 99999-9999",
-    "interests": ["carros", "imóveis"],
-    "code": "GZM-A9KQ12"
-  }
-}`}</pre>
               </div>
             </div>
           </div>
