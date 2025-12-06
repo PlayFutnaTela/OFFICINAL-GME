@@ -30,6 +30,30 @@ export async function getInviteRequests(status: string = 'pending') {
   }
 }
 
+export async function getAllInviteRequests() {
+  try {
+    console.log('[getAllInviteRequests] Buscando TODAS as solicitações...');
+    const supabase = createAdminClient();
+    
+    const { data, error } = await supabase
+      .from('invite_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[getAllInviteRequests] Erro ao buscar:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log('[getAllInviteRequests] ✅ Total de solicitações:', data?.length || 0);
+
+    return { success: true, data: data || [], count: data?.length || 0 };
+  } catch (err: any) {
+    console.error('[getAllInviteRequests] Erro catch:', err.message);
+    return { success: false, error: err.message, data: [] };
+  }
+}
+
 export async function approveInviteRequest(requestId: string) {
   try {
     // Obter usuário autenticado

@@ -12,6 +12,7 @@ import {
 } from '@/actions/invite-request';
 import {
   getInviteRequests,
+  getAllInviteRequests,
   approveInviteRequest,
   rejectInviteRequest,
 } from '@/actions/invite-requests';
@@ -24,7 +25,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type Tab = 'metrics' | 'generate' | 'list' | 'pending' | 'webhook';
+type Tab = 'metrics' | 'generate' | 'list' | 'pending' | 'webhook' | 'solicitacoes';
 
 interface PendingMember {
   id: string;
@@ -92,6 +93,16 @@ export default function ConvitesAdminPage() {
   // Modal state
   const [showSendInviteModal, setShowSendInviteModal] = useState(false);
   const [selectedRequestData, setSelectedRequestData] = useState<{ nome: string; whatsapp: string } | null>(null);
+  
+  // Filtros para convites
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  
+  // Estados para a tabela de solicitações na aba de consulta
+  const [allInviteRequests, setAllInviteRequests] = useState<InviteRequest[]>([]);
+  const [filterRequestStatus, setFilterRequestStatus] = useState<string>('all');
+  const [currentRequestPage, setCurrentRequestPage] = useState(1);
+  const requestsPerPage = 10;
 
   const supabase = createClient();
 
@@ -244,6 +255,49 @@ export default function ConvitesAdminPage() {
       loadInviteRequests();
     }
   }, [tab]);
+
+  // Carregar TODAS as solicitações quando a aba solicitacoes é selecionada
+  useEffect(() => {
+    if (tab === 'solicitacoes') {
+      const loadAllRequests = async () => {
+        try {
+          const result = await getAllInviteRequests();
+          if (result.success) {
+            setAllInviteRequests(result.data || []);
+          } else {
+            console.error('Erro ao carregar solicitações:', result.error);
+            setAllInviteRequests([]);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar solicitações:', error);
+          setAllInviteRequests([]);
+        }
+      };
+
+      loadAllRequests();
+    }
+  }, [tab]);
+
+  // Função para filtrar convites
+  const getFilteredInvites = () => {
+    return invitesWithUsers.filter((invite) => {
+      const statusMatch = filterStatus === 'all' || invite.status === filterStatus;
+      const categoryMatch = filterCategory === 'all' || invite.category === filterCategory;
+      return statusMatch && categoryMatch;
+    });
+  };
+
+  const filteredInvites = getFilteredInvites();
+
+  // Função para filtrar solicitações
+  const getFilteredRequests = () => {
+    if (filterRequestStatus === 'all') {
+      return allInviteRequests;
+    }
+    return allInviteRequests.filter(req => req.status === filterRequestStatus);
+  };
+
+  const filteredRequests = getFilteredRequests();
 
   const handleGenerateInvites = async () => {
     setGenerating(true);
@@ -578,7 +632,7 @@ export default function ConvitesAdminPage() {
 
         {/* Tabs */}
         <div className="flex gap-4 mb-8 border-b">
-          {(['metrics', 'generate', 'list', 'pending', 'webhook'] as Tab[]).map((t) => (
+          {(['metrics', 'generate', 'list', 'pending', 'webhook', 'solicitacoes'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -591,6 +645,7 @@ export default function ConvitesAdminPage() {
               {t === 'list' && 'Convites Gerados'}
               {t === 'pending' && 'Pendentes'}
               {t === 'webhook' && 'Webhook'}
+              {t === 'solicitacoes' && 'Solicitações'}
             </button>
           ))}
         </div>
@@ -650,6 +705,53 @@ export default function ConvitesAdminPage() {
               <p className="text-gray-500">Nenhum convite gerado ainda</p>
             ) : (
               <>
+                {/* Filtros */}
+                <div className="bg-white p-4 rounded-lg border space-y-4">
+                  <h3 className="text-lg font-bold mb-4">Filtros</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Filtro de Status */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Status</label>
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => {
+                          setFilterStatus(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      >
+                        <option value="all">Todos</option>
+                        <option value="unused">Disponível</option>
+                        <option value="used">Usado</option>
+                        <option value="disabled">Desabilitado</option>
+                      </select>
+                    </div>
+
+                    {/* Filtro de Categoria */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Categoria</label>
+                      <select
+                        value={filterCategory}
+                        onChange={(e) => {
+                          setFilterCategory(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      >
+                        <option value="all">Todas</option>
+                        <option value="standard">Standard</option>
+                        <option value="premium">Premium</option>
+                        <option value="enterprise">Enterprise</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Info de filtros aplicados */}
+                  <div className="text-sm text-gray-600 pt-2 border-t">
+                    <span className="font-medium">Resultado:</span> {filteredInvites.length} convite{filteredInvites.length !== 1 ? 's' : ''} encontrado{filteredInvites.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
@@ -664,12 +766,19 @@ export default function ConvitesAdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {invitesWithUsers
-                        .slice(
-                          (currentPage - 1) * itemsPerPage,
-                          currentPage * itemsPerPage
-                        )
-                        .map((invite) => (
+                      {filteredInvites.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-4 text-center text-gray-500">
+                            Nenhum convite encontrado com os filtros selecionados
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredInvites
+                          .slice(
+                            (currentPage - 1) * itemsPerPage,
+                            currentPage * itemsPerPage
+                          )
+                          .map((invite) => (
                           <tr key={invite.id} className="border-b hover:bg-gray-50">
                             <td className="p-4 font-mono font-bold text-blue-600">{invite.code}</td>
                             <td className="p-4">
@@ -705,7 +814,8 @@ export default function ConvitesAdminPage() {
                               {invite.notes || '-'}
                             </td>
                           </tr>
-                        ))}
+                          ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -713,12 +823,12 @@ export default function ConvitesAdminPage() {
                 {/* Paginação */}
                 <div className="flex items-center justify-between mt-6 px-4">
                   <p className="text-sm text-gray-600">
-                    Mostrando {(currentPage - 1) * itemsPerPage + 1} a{' '}
-                    {Math.min(currentPage * itemsPerPage, invitesWithUsers.length)} de{' '}
-                    {invitesWithUsers.length} convites
+                    Mostrando {filteredInvites.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} a{' '}
+                    {Math.min(currentPage * itemsPerPage, filteredInvites.length)} de{' '}
+                    {filteredInvites.length} convites
                   </p>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2">>
                     <Button
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
@@ -729,7 +839,7 @@ export default function ConvitesAdminPage() {
 
                     <div className="flex items-center gap-2">
                       {Array.from({
-                        length: Math.ceil(invitesWithUsers.length / itemsPerPage),
+                        length: Math.ceil(filteredInvites.length / itemsPerPage),
                       }).map((_, idx) => (
                         <button
                           key={idx + 1}
@@ -749,14 +859,14 @@ export default function ConvitesAdminPage() {
                       onClick={() =>
                         setCurrentPage((prev) =>
                           Math.min(
-                            Math.ceil(invitesWithUsers.length / itemsPerPage),
+                            Math.ceil(filteredInvites.length / itemsPerPage),
                             prev + 1
                           )
                         )
                       }
                       disabled={
                         currentPage ===
-                        Math.ceil(invitesWithUsers.length / itemsPerPage)
+                        Math.ceil(filteredInvites.length / itemsPerPage)
                       }
                       variant="outline"
                     >
@@ -887,7 +997,7 @@ export default function ConvitesAdminPage() {
 
         {/* Webhook */}
         {tab === 'webhook' && (
-          <div className="bg-white p-6 rounded-lg border max-w-2xl">
+          <div className="bg-white p-6 rounded-lg border max-w-4xl">
             <div className="space-y-6">
               {/* Seção 1: Webhook de Novo Cadastro */}
               <div>
@@ -1085,6 +1195,140 @@ export default function ConvitesAdminPage() {
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Solicitações */}
+        {tab === 'solicitacoes' && (
+          <div className="bg-white p-6 rounded-lg border">
+            <h3 className="text-lg font-bold mb-4 text-gray-900">Consulta de Solicitações de Convite</h3>
+            
+            {/* Filtro de Status */}
+            <div className="mb-4 max-w-xs">
+              <label className="block text-sm font-medium mb-2">Filtrar por Status</label>
+              <select
+                value={filterRequestStatus}
+                onChange={(e) => {
+                  setFilterRequestStatus(e.target.value);
+                  setCurrentRequestPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              >
+                <option value="all">Todos ({allInviteRequests.length})</option>
+                <option value="pending">Pendente ({allInviteRequests.filter(r => r.status === 'pending').length})</option>
+                <option value="approved">Aprovado ({allInviteRequests.filter(r => r.status === 'approved').length})</option>
+                <option value="rejected">Rejeitado ({allInviteRequests.filter(r => r.status === 'rejected').length})</option>
+              </select>
+            </div>
+
+            {/* Tabela de Solicitações */}
+            {filteredRequests.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Nenhuma solicitação encontrada
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto border rounded-lg mb-4">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-100 border-b">
+                        <th className="text-left p-3 font-medium">Nome</th>
+                        <th className="text-left p-3 font-medium">Email</th>
+                        <th className="text-left p-3 font-medium">Status</th>
+                        <th className="text-left p-3 font-medium">Data</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRequests
+                        .slice(
+                          (currentRequestPage - 1) * requestsPerPage,
+                          currentRequestPage * requestsPerPage
+                        )
+                        .map((request) => (
+                          <tr key={request.id} className="border-b hover:bg-gray-50">
+                            <td className="p-3 font-medium text-gray-900">{request.nome}</td>
+                            <td className="p-3 text-gray-700 text-xs">{request.email}</td>
+                            <td className="p-3">
+                              <span
+                                className={`px-2 py-1 rounded text-xs font-medium inline-block ${
+                                  request.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : request.status === 'approved'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {request.status === 'pending' && '⏳ Pendente'}
+                                {request.status === 'approved' && '✅ Aprovado'}
+                                {request.status === 'rejected' && '❌ Rejeitado'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-gray-600 text-xs">
+                              {new Date(request.created_at).toLocaleDateString('pt-BR')}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Paginação */}
+                {Math.ceil(filteredRequests.length / requestsPerPage) > 1 && (
+                  <div className="flex items-center justify-between mt-4 px-2">
+                    <p className="text-xs text-gray-600">
+                      Mostrando {(currentRequestPage - 1) * requestsPerPage + 1} a{' '}
+                      {Math.min(currentRequestPage * requestsPerPage, filteredRequests.length)} de{' '}
+                      {filteredRequests.length}
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCurrentRequestPage((prev) => Math.max(1, prev - 1))}
+                        disabled={currentRequestPage === 1}
+                        className="px-2 py-1 text-xs border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ← Ant.
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({
+                          length: Math.ceil(filteredRequests.length / requestsPerPage),
+                        }).map((_, idx) => (
+                          <button
+                            key={idx + 1}
+                            onClick={() => setCurrentRequestPage(idx + 1)}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              currentRequestPage === idx + 1
+                                ? 'bg-black text-white'
+                                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                            }`}
+                          >
+                            {idx + 1}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          setCurrentRequestPage((prev) =>
+                            Math.min(
+                              Math.ceil(filteredRequests.length / requestsPerPage),
+                              prev + 1
+                            )
+                          )
+                        }
+                        disabled={
+                          currentRequestPage === Math.ceil(filteredRequests.length / requestsPerPage)
+                        }
+                        className="px-2 py-1 text-xs border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Prox. →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
