@@ -990,7 +990,7 @@ export default function ConvitesAdminPage() {
                     {filteredInvites.length} convites
                   </p>
 
-                  <div className="flex gap-2">>
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
