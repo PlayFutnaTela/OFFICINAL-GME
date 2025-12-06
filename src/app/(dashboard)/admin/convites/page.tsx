@@ -10,6 +10,16 @@ import {
   getInviteRequestWebhookUrl, 
   updateInviteRequestWebhookUrl 
 } from '@/actions/invite-request';
+import {
+  getInviteRequests,
+  approveInviteRequest,
+  rejectInviteRequest,
+} from '@/actions/invite-requests';
+import {
+  getSendInviteWebhookUrl,
+  updateSendInviteWebhookUrl,
+} from '@/actions/send-invite';
+import { SendInviteModal } from '@/components/send-invite-modal';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +33,17 @@ interface PendingMember {
   phone: string;
   created_at: string;
   extra_info: any;
+}
+
+interface InviteRequest {
+  id: string;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  motivo: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  rejection_reason?: string;
 }
 
 interface Invite {
@@ -52,17 +73,25 @@ export default function ConvitesAdminPage() {
     approvedMembers: 0,
   });
   const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
+  const [inviteRequests, setInviteRequests] = useState<InviteRequest[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [invitesWithUsers, setInvitesWithUsers] = useState<Array<Invite & { userName?: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingInviteRequests, setLoadingInviteRequests] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [quantity, setQuantity] = useState(5);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookSaved, setWebhookSaved] = useState(false);
   const [inviteRequestWebhookUrl, setInviteRequestWebhookUrl] = useState('');
   const [inviteRequestWebhookSaved, setInviteRequestWebhookSaved] = useState(false);
+  const [sendInviteWebhookUrl, setSendInviteWebhookUrl] = useState('');
+  const [sendInviteWebhookSaved, setSendInviteWebhookSaved] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  
+  // Modal state
+  const [showSendInviteModal, setShowSendInviteModal] = useState(false);
+  const [selectedRequestData, setSelectedRequestData] = useState<{ nome: string; whatsapp: string } | null>(null);
 
   const supabase = createClient();
 
@@ -168,6 +197,16 @@ export default function ConvitesAdminPage() {
         if (inviteRequestResult.success && inviteRequestResult.webhookUrl) {
           setInviteRequestWebhookUrl(inviteRequestResult.webhookUrl);
         }
+
+        // Carregar webhook de envio de convite
+        const sendInviteResult = await getSendInviteWebhookUrl();
+        console.log('[loadData] getSendInviteWebhookUrl resultado:', sendInviteResult);
+        if (sendInviteResult.success && sendInviteResult.webhookUrl) {
+          console.log('[loadData] Webhook URL carregado:', sendInviteResult.webhookUrl);
+          setSendInviteWebhookUrl(sendInviteResult.webhookUrl);
+        } else {
+          console.error('[loadData] Erro ao carregar webhook:', sendInviteResult.error);
+        }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -177,6 +216,34 @@ export default function ConvitesAdminPage() {
 
     loadData();
   }, []);
+
+  // Carregar solicitações de convite quando a aba muda
+  useEffect(() => {
+    if (tab === 'pending') {
+      const loadInviteRequests = async () => {
+        console.log('[loadInviteRequests] Iniciando...');
+        setLoadingInviteRequests(true);
+        try {
+          const result = await getInviteRequests('pending');
+          console.log('[loadInviteRequests] Resultado:', result);
+          if (result.success) {
+            console.log('[loadInviteRequests] ✅ Dados carregados:', result.data);
+            setInviteRequests(result.data || []);
+          } else {
+            console.error('[loadInviteRequests] Erro:', result.error);
+            setInviteRequests([]);
+          }
+        } catch (error) {
+          console.error('[loadInviteRequests] Erro catch:', error);
+          setInviteRequests([]);
+        } finally {
+          setLoadingInviteRequests(false);
+        }
+      };
+
+      loadInviteRequests();
+    }
+  }, [tab]);
 
   const handleGenerateInvites = async () => {
     setGenerating(true);
@@ -399,6 +466,107 @@ export default function ConvitesAdminPage() {
     }
   };
 
+  const handleApproveInviteRequest = async (requestId: string) => {
+    if (!confirm('Aprovar esta solicitação de convite?')) return;
+
+    try {
+      const result = await approveInviteRequest(requestId);
+      if (result.success) {
+        alert('✅ Solicitação de convite aprovada!');
+        // Remover da lista e recarregar
+        setInviteRequests((prev) => prev.filter((r) => r.id !== requestId));
+      } else {
+        alert(`❌ Erro: ${result.error}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Erro: ${error.message}`);
+    }
+  };
+
+  const handleRejectInviteRequest = async (requestId: string) => {
+    const reason = prompt('Motivo da rejeição:');
+    if (!reason) return;
+
+    try {
+      const result = await rejectInviteRequest(requestId, reason);
+      if (result.success) {
+        alert('✅ Solicitação de convite rejeitada!');
+        // Remover da lista
+        setInviteRequests((prev) => prev.filter((r) => r.id !== requestId));
+      } else {
+        alert(`❌ Erro: ${result.error}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Erro: ${error.message}`);
+    }
+  };
+
+  const handleOpenSendInviteModal = (request: InviteRequest) => {
+    setSelectedRequestData({
+      nome: request.nome,
+      whatsapp: request.whatsapp,
+    });
+    setShowSendInviteModal(true);
+  };
+
+  const handleCloseSendInviteModal = () => {
+    setShowSendInviteModal(false);
+    setSelectedRequestData(null);
+  };
+
+  const handleSaveSendInviteWebhook = async () => {
+    if (!sendInviteWebhookUrl) {
+      alert('Por favor, insira uma URL válida');
+      return;
+    }
+
+    try {
+      const result = await updateSendInviteWebhookUrl(sendInviteWebhookUrl);
+      if (result.success) {
+        setSendInviteWebhookSaved(true);
+        alert('✅ URL do webhook de envio de convite salva com sucesso no banco de dados!');
+        setTimeout(() => setSendInviteWebhookSaved(false), 3000);
+      } else {
+        alert(`❌ Erro ao salvar: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro: ${error}`);
+    }
+  };
+
+  const handleTestSendInviteWebhook = async () => {
+    const url = sendInviteWebhookUrl;
+    if (!url) {
+      alert('Nenhuma URL configurada para envio de convite');
+      return;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'send_invite_to_client',
+          timestamp: new Date().toISOString(),
+          data: {
+            nome: 'Teste Envio',
+            whatsapp: '11999999999',
+            convite: 'GZM-TEST',
+            data: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (response.ok) {
+        alert('✅ Webhook de envio de convite testado com sucesso!');
+      } else {
+        alert(`❌ Erro: ${response.statusText}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro ao enviar: ${error}`);
+    }
+  };
+
   if (loading) {
     return <div className="p-8">Carregando...</div>;
   }
@@ -603,53 +771,117 @@ export default function ConvitesAdminPage() {
 
         {/* Pendentes */}
         {tab === 'pending' && (
-          <div className="space-y-4">
-            {pendingMembers.length === 0 ? (
-              <p className="text-gray-500">Nenhum candidato pendente</p>
-            ) : (
-              pendingMembers.map((member) => (
-                <div key={member.id} className="bg-white p-6 rounded-lg border">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-bold">{member.name}</h3>
-                      <p className="text-sm text-gray-600">{member.email}</p>
-                      {member.phone && <p className="text-sm text-gray-600">{member.phone}</p>}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {new Date(member.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
+          <div className="space-y-6">
+            {/* Seção de Solicitações de Convite */}
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Solicitações de Convite</h2>
+              {loadingInviteRequests ? (
+                <p className="text-gray-500">Carregando solicitações...</p>
+              ) : inviteRequests.length === 0 ? (
+                <p className="text-gray-500">Nenhuma solicitação de convite pendente</p>
+              ) : (
+                <div className="overflow-x-auto bg-white rounded-lg border">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-100 border-b">
+                        <th className="text-left p-4 font-medium">Nome</th>
+                        <th className="text-left p-4 font-medium">Email</th>
+                        <th className="text-left p-4 font-medium">WhatsApp</th>
+                        <th className="text-left p-4 font-medium">Motivo</th>
+                        <th className="text-left p-4 font-medium">Data</th>
+                        <th className="text-center p-4 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inviteRequests.map((request) => (
+                        <tr key={request.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4 font-medium">{request.nome}</td>
+                          <td className="p-4 text-sm text-gray-700">{request.email}</td>
+                          <td className="p-4 text-sm text-gray-700">{request.whatsapp}</td>
+                          <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={request.motivo}>
+                            {request.motivo}
+                          </td>
+                          <td className="p-4 text-sm text-gray-500">
+                            {new Date(request.created_at).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                onClick={() => handleOpenSendInviteModal(request)}
+                                className="bg-green-600 text-white hover:bg-green-700 text-xs px-3 py-1"
+                              >
+                                Aprovar
+                              </Button>
+                              <Button
+                                onClick={() => handleRejectInviteRequest(request.id)}
+                                className="bg-red-600 text-white hover:bg-red-700 text-xs px-3 py-1"
+                              >
+                                Rejeitar
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
 
-                  {member.extra_info?.interests?.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs text-gray-600 mb-2">Interesses:</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {member.extra_info.interests.map((interest: string) => (
-                          <span key={interest} className="bg-gray-100 px-3 py-1 rounded text-xs">
-                            {interest}
-                          </span>
-                        ))}
+            <hr className="my-6" />
+
+            {/* Seção de Candidatos (pendentes de aprovação) */}
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Candidatos Pendentes</h2>
+              {pendingMembers.length === 0 ? (
+                <p className="text-gray-500">Nenhum candidato pendente</p>
+              ) : (
+                <div className="space-y-4">
+                  {pendingMembers.map((member) => (
+                    <div key={member.id} className="bg-white p-6 rounded-lg border">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-bold">{member.name}</h3>
+                          <p className="text-sm text-gray-600">{member.email}</p>
+                          {member.phone && <p className="text-sm text-gray-600">{member.phone}</p>}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {new Date(member.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+
+                      {member.extra_info?.interests?.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs text-gray-600 mb-2">Interesses:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {member.extra_info.interests.map((interest: string) => (
+                              <span key={interest} className="bg-gray-100 px-3 py-1 rounded text-xs">
+                                {interest}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => handleApproveMember(member.id)}
+                          className="bg-green-600 text-white hover:bg-green-700"
+                        >
+                          Aprovar
+                        </Button>
+                        <Button
+                          onClick={() => handleRejectMember(member.id)}
+                          className="bg-red-600 text-white hover:bg-red-700"
+                        >
+                          Rejeitar
+                        </Button>
                       </div>
                     </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => handleApproveMember(member.id)}
-                      className="bg-green-600 text-white hover:bg-green-700"
-                    >
-                      Aprovar
-                    </Button>
-                    <Button
-                      onClick={() => handleRejectMember(member.id)}
-                      className="bg-red-600 text-white hover:bg-red-700"
-                    >
-                      Rejeitar
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
         )}
 
@@ -778,6 +1010,65 @@ export default function ConvitesAdminPage() {
 
               <hr className="my-6" />
 
+              {/* Seção 3: Webhook de Envio de Convite */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Envio de Convite ao Cliente</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">URL do Webhook</label>
+                    <Input
+                      type="url"
+                      placeholder="https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/enviar-convite"
+                      value={sendInviteWebhookUrl}
+                      onChange={(e) => setSendInviteWebhookUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      URL para enviar convites aos clientes que solicitaram
+                    </p>
+                  </div>
+
+                  {/* Webhook padrão */}
+                  <div className="bg-purple-50 border border-purple-200 p-4 rounded">
+                    <p className="text-xs font-medium text-purple-900 mb-2">URL em Uso Agora:</p>
+                    <p className="text-xs text-purple-800 break-all">
+                      {sendInviteWebhookUrl || 'Carregando...'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleSaveSendInviteWebhook}
+                      disabled={!sendInviteWebhookUrl}
+                      className="w-full bg-black text-white"
+                    >
+                      {sendInviteWebhookSaved ? '✅ Salvo!' : 'Salvar URL'}
+                    </Button>
+                    <Button
+                      onClick={handleTestSendInviteWebhook}
+                      disabled={!sendInviteWebhookUrl}
+                      className="w-full bg-gray-600 text-white hover:bg-gray-700"
+                    >
+                      Testar Webhook
+                    </Button>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded text-xs">
+                    <p className="font-medium mb-2">O webhook receberá JSON assim:</p>
+                    <pre className="overflow-auto text-gray-700">{`{
+  "type": "send_invite_to_client",
+  "data": {
+    "nome": "João Silva",
+    "whatsapp": "11999999999",
+    "convite": "GZM-XXXX",
+    "data": "2025-12-06T01:30:00Z"
+  }
+}`}</pre>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-6" />
+
               {/* Botões de Teste do Sistema */}
               <div className="space-y-2">
                 <Button
@@ -797,6 +1088,30 @@ export default function ConvitesAdminPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de Envio de Convite */}
+      {selectedRequestData && (
+        <SendInviteModal
+          isOpen={showSendInviteModal}
+          onClose={handleCloseSendInviteModal}
+          nome={selectedRequestData.nome}
+          whatsapp={selectedRequestData.whatsapp}
+          onSuccess={() => {
+            // Recarregar solicitações após envio bem-sucedido
+            const loadInviteRequests = async () => {
+              try {
+                const result = await getInviteRequests('pending');
+                if (result.success) {
+                  setInviteRequests(result.data || []);
+                }
+              } catch (error) {
+                console.error('Erro ao recarregar solicitações:', error);
+              }
+            };
+            loadInviteRequests();
+          }}
+        />
+      )}
     </div>
   );
 }
