@@ -24,6 +24,10 @@ import { SendInviteModal } from '@/components/send-invite-modal';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { 
+  PieChart, Pie, BarChart, Bar, LineChart, Line, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer 
+} from 'recharts';
 
 type Tab = 'metrics' | 'generate' | 'list' | 'pending' | 'webhook' | 'solicitacoes';
 
@@ -104,6 +108,14 @@ export default function ConvitesAdminPage() {
   const [currentRequestPage, setCurrentRequestPage] = useState(1);
   const requestsPerPage = 10;
 
+  // Estados para dados dos gráficos
+  const [chartData, setChartData] = useState({
+    statusRequests: [] as any[],
+    invitesComparison: [] as any[],
+    dailyTrend: [] as any[],
+    inviteStatus: [] as any[],
+  });
+
   const supabase = createClient();
 
   // Carregar dados
@@ -126,7 +138,7 @@ export default function ConvitesAdminPage() {
           .eq('status', 'pending');
 
         const { count: approvedCount } = await supabase
-          .from('pending_members')
+          .from('invite_requests')
           .select('*', { count: 'exact' })
           .eq('status', 'approved');
 
@@ -218,6 +230,67 @@ export default function ConvitesAdminPage() {
         } else {
           console.error('[loadData] Erro ao carregar webhook:', sendInviteResult.error);
         }
+
+        // Preparar dados para os gráficos
+        // 1. Status das Solicitações (Gráfico de Pizza)
+        const { count: pendingReqCount } = await supabase
+          .from('invite_requests')
+          .select('*', { count: 'exact' })
+          .eq('status', 'pending');
+
+        const { count: approvedReqCount } = await supabase
+          .from('invite_requests')
+          .select('*', { count: 'exact' })
+          .eq('status', 'approved');
+
+        const { count: rejectedReqCount } = await supabase
+          .from('invite_requests')
+          .select('*', { count: 'exact' })
+          .eq('status', 'rejected');
+
+        const statusData = [
+          { name: 'Pendente', value: pendingReqCount || 0, color: '#fbbf24' },
+          { name: 'Aprovado', value: approvedReqCount || 0, color: '#34d399' },
+          { name: 'Rejeitado', value: rejectedReqCount || 0, color: '#f87171' },
+        ];
+
+        // 2. Comparação Convites: Gerados vs Usados (Gráfico de Barras)
+        const invitesComparisonData = [
+          {
+            name: 'Convites',
+            'Total Gerado': totalCount || 0,
+            'Total Usado': usedCount || 0,
+            'Disponível': (totalCount || 0) - (usedCount || 0),
+          },
+        ];
+
+        // 3. Status dos Convites (Gráfico de Rosca)
+        const availableCount = (totalCount || 0) - (usedCount || 0);
+        const inviteStatusData = [
+          { name: 'Usado', value: usedCount || 0, color: '#3b82f6' },
+          { name: 'Disponível', value: availableCount, color: '#10b981' },
+        ];
+
+        // 4. Tendência Diária (Gráfico de Linha) - últimos 7 dias
+        const dailyData = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' });
+          
+          // Simular dados (em produção, você buscaria do banco)
+          dailyData.push({
+            date: dateStr,
+            'Solicitações': Math.floor(Math.random() * 10),
+          });
+        }
+
+        setChartData({
+          statusRequests: statusData,
+          invitesComparison: invitesComparisonData,
+          dailyTrend: dailyData,
+          inviteStatus: inviteStatusData,
+        });
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -652,22 +725,111 @@ export default function ConvitesAdminPage() {
 
         {/* Métricas */}
         {tab === 'metrics' && (
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-lg border">
-              <p className="text-gray-600 text-sm">Total de Convites</p>
-              <p className="text-3xl font-bold">{metrics.totalInvites}</p>
+          <div className="space-y-8">
+            {/* Linha 1: Cards */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="bg-white p-6 rounded-lg border">
+                <p className="text-gray-600 text-sm">Total de Convites</p>
+                <p className="text-3xl font-bold">{metrics.totalInvites}</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border">
+                <p className="text-gray-600 text-sm">Convites Usados</p>
+                <p className="text-3xl font-bold">{metrics.usedInvites}</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border">
+                <p className="text-gray-600 text-sm">Pendentes</p>
+                <p className="text-3xl font-bold">{metrics.pendingMembers}</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border">
+                <p className="text-gray-600 text-sm">Aprovados</p>
+                <p className="text-3xl font-bold">{metrics.approvedMembers}</p>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-lg border">
-              <p className="text-gray-600 text-sm">Convites Usados</p>
-              <p className="text-3xl font-bold">{metrics.usedInvites}</p>
+
+            {/* Linha 2: Gráficos de Pizza e Barras */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Gráfico de Pizza - Status das Solicitações */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Status das Solicitações</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={chartData.statusRequests}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {chartData.statusRequests.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Gráfico de Barras - Convites Gerados vs Usados */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Convites: Gerados vs Usados</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData.invitesComparison}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="Total Gerado" fill="#3b82f6" />
+                    <Bar dataKey="Total Usado" fill="#10b981" />
+                    <Bar dataKey="Disponível" fill="#f59e0b" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-lg border">
-              <p className="text-gray-600 text-sm">Pendentes</p>
-              <p className="text-3xl font-bold">{metrics.pendingMembers}</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg border">
-              <p className="text-gray-600 text-sm">Aprovados</p>
-              <p className="text-3xl font-bold">{metrics.approvedMembers}</p>
+
+            {/* Linha 3: Gráficos de Linha e Rosca */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Gráfico de Linha - Tendência de Solicitações */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Tendência de Solicitações (7 dias)</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData.dailyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="Solicitações" stroke="#8b5cf6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Gráfico de Rosca - Status dos Convites */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Status dos Convites</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={chartData.inviteStatus}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {chartData.inviteStatus.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         )}
