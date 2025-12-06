@@ -63,6 +63,10 @@ export default function DashboardCharts({
     return null;
   };
 
+  const CustomPieLabel = (entry: any) => {
+    return `${entry.category}: ${entry.count}`;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       {/* GrÃ¡fico de Taxa de ConversÃ£o por EstÃ¡gio do Funil */}
@@ -200,7 +204,7 @@ export default function DashboardCharts({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ category, count }) => `${category}: ${count}`}
+                label={CustomPieLabel}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
