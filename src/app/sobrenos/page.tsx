@@ -65,15 +65,15 @@ export default function SobreNosPage() {
       <section className="relative h-[400px] sm:h-[600px] text-white flex flex-col justify-center items-center text-center overflow-hidden">
         <Image
           alt="Abstract world map with a golden globe"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIXJy6DW0qAtSBj43fMxsB1qx_HgKfeQ3Bt5VezFBhZFDcJTSQ2B16toZUQn2jblTbaP_6aMUBf-QwhWEUYp0vNflDoOyGaFouVaoC_D6gXlwV7s6XQFi_GJBr_EljeMXDKp_TW0yEqZaA-T4mu6IXCCeSfWegdFNJmuDXITzXh7cEpFJqenbxvIVnN-PtZqyd8AR-V50-pIp1nYfIcJyFNve-QiJrqg83JbsLyHnXaLU4XoSjuzVehQdMre0KoUmRUYlk2GNNs0M"
+          src="https://i.postimg.cc/VLJMGvrW/um-jato-privado-fotografado-de-tr-s-decolando.jpg"
           fill
           className="absolute inset-0 object-cover"
           priority
         />
         <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="relative z-10 px-4">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light tracking-widest uppercase">Conectando compradores e ativos de alto padrão.</h1>
-          <p className="mt-3 sm:mt-4 text-lg sm:text-xl tracking-widest uppercase">Qualquer coisa. A qualquer momento. Em qualquer lugar.</p>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light tracking-widest uppercase">Conectamos você ao extraordinário.</h1>
+          <p className="mt-3 sm:mt-4 text-lg sm:text-xl tracking-widest uppercase">Para quem exige mais do que o mercado oferece.</p>
         </div>
       </section>
 
@@ -171,7 +171,7 @@ Afinal, grandes negociações exigem mais do que habilidade: exigem credibilidad
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 max-w-5xl mx-auto mt-12 sm:mt-16">
             {categories.map((category) => (
-              <div key={category.id} className="bg-gray-100 dark:bg-gray-800 p-4 sm:p-8 flex flex-col items-center justify-center aspect-square hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+              <div key={category.id} className="bg-gray-100 dark:bg-gray-800 p-4 sm:p-8 flex flex-col items-center justify-center aspect-square border border-white/50 shadow-lg shadow-yellow-500/30 hover:shadow-yellow-500/50 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer">
                 <Image
                   src={category.icon}
                   alt={category.name}
@@ -258,75 +258,26 @@ Afinal, grandes negociações exigem mais do que habilidade: exigem credibilidad
       {/* Footer */}
       <footer className="bg-gray-800 text-gray-400 py-12 sm:py-16 px-4 sm:px-8 md:px-16 mt-16 sm:mt-24">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-12 mb-8 sm:mb-12">
-            {/* Logo */}
-            <div className="md:col-span-1">
-              <Link href="/" className="flex items-center text-white mb-6 sm:mb-8">
-                <span className="text-xl font-bold tracking-wider">GEREZIM</span>
-              </Link>
+          {/* Contact Info */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-xs sm:text-sm mb-6 sm:mb-8">
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+              <span>+55 11 98144-2518</span>
             </div>
-
-            {/* Services */}
-            <div className="text-xs sm:text-sm">
-              <h4 className="font-bold text-white mb-3 sm:mb-4">Serviços</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Viagem</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Transporte</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Acesso VIP</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Família</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Serviços domésticos</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Fonte itens luxo</Link></li>
-              </ul>
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+              <span>info@gerezim.club</span>
             </div>
-
-            {/* About */}
-            <div className="text-xs sm:text-sm">
-              <h4 className="font-bold text-white mb-3 sm:mb-4">Sobre nós</h4>
-              <ul className="space-y-2">
-                <li><Link href="/sobrenos" className="hover:text-yellow-500 transition-colors">Sobre empresa</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Contatos</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Nossos parceiros</Link></li>
-              </ul>
-            </div>
-
-            {/* Exclusive */}
-            <div className="text-xs sm:text-sm">
-              <h4 className="font-bold text-white mb-3 sm:mb-4">Exclusivos</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Concertos</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Eventos esportivos</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Teatro</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Para crianças</Link></li>
-                <li><Link href="#" className="hover:text-yellow-500 transition-colors">Tours</Link></li>
-              </ul>
-            </div>
-
-            {/* Membership */}
-            <div className="text-xs sm:text-sm">
-              <h4 className="font-bold text-white mb-3 sm:mb-4">Membros</h4>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+              <span>São Paulo, Brasil</span>
             </div>
           </div>
 
           {/* Divider */}
           <div className="border-t border-gray-700 mt-8 sm:mt-12 pt-6 sm:pt-8">
-            {/* Contact Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-xs sm:text-sm mb-6 sm:mb-8">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-                <span>+55 11 98144-2518</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-                <span>info@gerezim.club</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-                <span>São Paulo, Brasil</span>
-              </div>
-            </div>
-
             {/* Copyright */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs border-t border-gray-700 pt-6 sm:pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
               <p>© 2024 por Gerezim. Todos os direitos reservados.</p>
               <div className="flex space-x-4">
                 <Link href="#" className="hover:text-yellow-500 transition-colors">FB</Link>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, ChevronRight, MessageCircle, MapPin, ArrowLeft, Home, AcUnit, Waves, Utensils, X, ZoomIn, Share2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, MapPin, ArrowLeft, Home, Waves, Utensils, X, ZoomIn, Share2 } from 'lucide-react'
 import OpportunityTimeline from '@/components/opportunity-timeline'
 import Link from 'next/link'
 import Image from 'next/image'
