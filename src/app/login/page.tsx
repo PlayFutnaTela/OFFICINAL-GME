@@ -177,11 +177,11 @@ export default function LoginPage({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 border-gold-500 border-2 focus:border-gold-600 focus:ring-gold-500"
                   />
                 </div>
 
-                <Button className="w-full h-11 bg-gold-500 hover:bg-gold-600 text-white" type="submit" disabled={loading}>
+                <Button className="w-full h-11 bg-gradient-to-r from-yellow-600 via-yellow-500 to-amber-600 hover:from-yellow-700 hover:via-yellow-600 hover:to-amber-700 text-white font-semibold shadow-md hover:shadow-lg transition-all" type="submit" disabled={loading}>
                   {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {loading ? 'Enviando...' : 'Enviar Link de Recuperação'}
                 </Button>
@@ -206,7 +206,7 @@ export default function LoginPage({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 border-gold-500 border-2 focus:border-gold-600 focus:ring-gold-500"
                   />
                 </div>
 
@@ -224,7 +224,7 @@ export default function LoginPage({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-11 pr-10"
+                      className="h-11 pr-10 border-gold-500 border-2 focus:border-gold-600 focus:ring-gold-500"
                     />
                     <button
                       type="button"
@@ -237,7 +237,7 @@ export default function LoginPage({
                 </div>
 
                 <div className="pt-2 space-y-3">
-                  <Button className="w-full h-11 bg-gold-500 hover:bg-gold-600 text-white" type="submit" disabled={loading}>
+                  <Button className="w-full h-11 bg-gradient-to-r from-yellow-600 via-yellow-500 to-amber-600 hover:from-yellow-700 hover:via-yellow-600 hover:to-amber-700 text-white font-semibold shadow-md hover:shadow-lg transition-all" type="submit" disabled={loading}>
                     {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {loading ? 'Entrando...' : 'Entrar'}
                   </Button>
