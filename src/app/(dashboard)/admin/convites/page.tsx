@@ -20,6 +20,11 @@ import {
   getSendInviteWebhookUrl,
   updateSendInviteWebhookUrl,
 } from '@/actions/send-invite';
+import {
+  getSolicitacaoPedidoWebhookUrl,
+  updateSolicitacaoPedidoWebhookUrl,
+  testSolicitacaoPedidoWebhook,
+} from '@/actions/solicitar-pedido-webhook';
 import { SendInviteModal } from '@/components/send-invite-modal';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -91,6 +96,8 @@ export default function ConvitesAdminPage() {
   const [inviteRequestWebhookSaved, setInviteRequestWebhookSaved] = useState(false);
   const [sendInviteWebhookUrl, setSendInviteWebhookUrl] = useState('');
   const [sendInviteWebhookSaved, setSendInviteWebhookSaved] = useState(false);
+  const [solicitacaoPedidoWebhookUrl, setSolicitacaoPedidoWebhookUrl] = useState('');
+  const [solicitacaoPedidoWebhookSaved, setSolicitacaoPedidoWebhookSaved] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   
@@ -229,6 +236,12 @@ export default function ConvitesAdminPage() {
           setSendInviteWebhookUrl(sendInviteResult.webhookUrl);
         } else {
           console.error('[loadData] Erro ao carregar webhook:', sendInviteResult.error);
+        }
+
+        // Carregar webhook de solicitação de pedido
+        const solicitacaoPedidoResult = await getSolicitacaoPedidoWebhookUrl();
+        if (solicitacaoPedidoResult.webhookUrl) {
+          setSolicitacaoPedidoWebhookUrl(solicitacaoPedidoResult.webhookUrl);
         }
 
         // Preparar dados para os gráficos
@@ -688,6 +701,45 @@ export default function ConvitesAdminPage() {
         alert('✅ Webhook de envio de convite testado com sucesso!');
       } else {
         alert(`❌ Erro: ${response.statusText}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro ao enviar: ${error}`);
+    }
+  };
+
+  const handleSaveSolicitacaoPedidoWebhook = async () => {
+    if (!solicitacaoPedidoWebhookUrl) {
+      alert('Por favor, insira uma URL válida');
+      return;
+    }
+
+    try {
+      const result = await updateSolicitacaoPedidoWebhookUrl(solicitacaoPedidoWebhookUrl);
+      if (result.success) {
+        setSolicitacaoPedidoWebhookSaved(true);
+        alert('✅ URL do webhook salva com sucesso no banco de dados!');
+        setTimeout(() => setSolicitacaoPedidoWebhookSaved(false), 3000);
+      } else {
+        alert(`❌ Erro ao salvar: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro: ${error}`);
+    }
+  };
+
+  const handleTestSolicitacaoPedidoWebhook = async () => {
+    const url = solicitacaoPedidoWebhookUrl;
+    if (!url) {
+      alert('Nenhuma URL configurada para solicitação de pedido');
+      return;
+    }
+
+    try {
+      const result = await testSolicitacaoPedidoWebhook(url);
+      if (result.success) {
+        alert('✅ Webhook de solicitação de pedido testado com sucesso!');
+      } else {
+        alert(`❌ Erro ao testar: ${result.error}`);
       }
     } catch (error) {
       alert(`❌ Erro ao enviar: ${error}`);
@@ -1334,6 +1386,74 @@ export default function ConvitesAdminPage() {
     "convite": "GZM-XXXX",
     "data": "2025-12-06T01:30:00Z"
   }
+}`}</pre>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-6" />
+
+              {/* Seção 4: Webhook de Solicitação de Pedido */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Solicitação de Pedido (Concierge)</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">URL do Webhook</label>
+                    <Input
+                      type="url"
+                      placeholder="https://n8n-n8n-start.yl9ubt.easypanel.host/webhook-test/solicitar-pedido"
+                      value={solicitacaoPedidoWebhookUrl}
+                      onChange={(e) => setSolicitacaoPedidoWebhookUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      URL para receber solicitações de pedidos de clientes (concierge service)
+                    </p>
+                  </div>
+
+                  {/* Webhook padrão */}
+                  <div className="bg-orange-50 border border-orange-200 p-4 rounded">
+                    <p className="text-xs font-medium text-orange-900 mb-2">URL em Uso Agora:</p>
+                    <p className="text-xs text-orange-800 break-all">
+                      {solicitacaoPedidoWebhookUrl || 'Carregando...'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleSaveSolicitacaoPedidoWebhook}
+                      disabled={!solicitacaoPedidoWebhookUrl}
+                      className="w-full bg-black text-white"
+                    >
+                      {solicitacaoPedidoWebhookSaved ? '✅ Salvo!' : 'Salvar URL'}
+                    </Button>
+                    <Button
+                      onClick={handleTestSolicitacaoPedidoWebhook}
+                      disabled={!solicitacaoPedidoWebhookUrl}
+                      className="w-full bg-gray-600 text-white hover:bg-gray-700"
+                    >
+                      Testar Webhook
+                    </Button>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded text-xs">
+                    <p className="font-medium mb-2">O webhook receberá JSON assim:</p>
+                    <pre className="overflow-auto text-gray-700">{`{
+  "event_type": "solicitar_pedido",
+  "user_id": "...",
+  "user_email": "joao@example.com",
+  "user_name": "João Silva",
+  "user_phone": "11999999999",
+  "request_data": {
+    "title": "BMW M5 2023",
+    "description": "Procuro uma BMW M5 2023 em bom estado...",
+    "specifications": "Cor: Preta, Km: 0",
+    "category": "carros",
+    "budget": "R$ 500.000 - R$ 700.000",
+    "location": "São Paulo, SP",
+    "contact_preference": "whatsapp",
+    "additional_notes": "Urgente"
+  },
+  "timestamp": "2025-12-06T20:00:00Z"
 }`}</pre>
                   </div>
                 </div>
