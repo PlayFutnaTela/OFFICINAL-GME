@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, ChevronRight, MessageCircle, MapPin, ArrowLeft, Home, AcUnit, Waves, Utensils } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, MapPin, ArrowLeft, Home, AcUnit, Waves, Utensils, X, ZoomIn, Share2 } from 'lucide-react'
 import OpportunityTimeline from '@/components/opportunity-timeline'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type Item = {
   id: string
@@ -31,6 +32,9 @@ type Props = {
 
 export default function ProductDetail({ item, isProduct }: Props) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [showShareMenu, setShowShareMenu] = useState(false)
 
   const images = isProduct ? (item.images || []) : (item.photos || [])
   const price = isProduct ? item.price : Number(item.value)
@@ -50,6 +54,26 @@ export default function ProductDetail({ item, isProduct }: Props) {
     window.open(whatsappUrl, '_blank')
   }
 
+  const handleShare = (platform: string) => {
+    const url = window.location.href
+    const text = `Confira esta ${isProduct ? 'produto' : 'oportunidade'}: ${item.title}`
+    
+    switch(platform) {
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
+        break
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
+        break
+      case 'instagram':
+        // Instagram não tem share direto via URL, então copiamos para clipboard
+        navigator.clipboard.writeText(url)
+        alert('Link copiado! Compartilhe nos stories ou DM do Instagram')
+        break
+    }
+    setShowShareMenu(false)
+  }
+
   // Parse description to extract features
   const features = item.description
     ? item.description.split('\n').filter(f => f.trim().length > 0)
@@ -57,16 +81,39 @@ export default function ProductDetail({ item, isProduct }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <style>{`
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+          width: 12px;
+          height: 12px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #eab308;
+          border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #ca8a04;
+        }
+      `}</style>
       {/* Fixed Header */}
       <header className="fixed top-0 left-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-md z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center space-x-2 text-blue-600">
-              <span className="text-3xl">💎</span>
-              <span className="text-2xl font-bold tracking-wider">GEREZIM</span>
+            <div className="flex items-center space-x-2">
+              <Image
+                src="/logo.png"
+                alt="Gerezim logo"
+                className="object-contain"
+                width={40}
+                height={40}
+              />
+              <span className="text-2xl font-bold tracking-wider text-yellow-500">GEREZIM</span>
             </div>
             <Link href="/oportunidades">
-              <button className="flex items-center space-x-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <button className="flex items-center space-x-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
                 <ArrowLeft className="h-5 w-5" />
                 <span>Voltar</span>
               </button>
@@ -79,7 +126,7 @@ export default function ProductDetail({ item, isProduct }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Hero Image Section */}
           <section className="mb-12">
-            <div className="relative rounded-lg overflow-hidden h-[60vh] group">
+            <div className="relative rounded-lg overflow-hidden h-[60vh] group cursor-pointer" onClick={() => setIsModalOpen(true)}>
               {images.length > 0 ? (
                 <>
                   <img
@@ -88,6 +135,12 @@ export default function ProductDetail({ item, isProduct }: Props) {
                     src={images[currentImageIndex]}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+
+                  {/* Click to zoom hint */}
+                  <div className="absolute top-4 left-4 flex items-center space-x-2 bg-white/80 px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ZoomIn className="h-4 w-4" />
+                    <span className="text-sm font-medium">Clique para ampliar</span>
+                  </div>
 
                   {/* Top Badges */}
                   <div className="absolute top-4 right-4 flex space-x-2">
@@ -229,20 +282,53 @@ export default function ProductDetail({ item, isProduct }: Props) {
                 )}
 
                 {/* CTA Card */}
-                <div className="bg-blue-600 p-8 rounded-lg shadow-lg text-white">
+                <div className="bg-gradient-to-br from-yellow-500 via-yellow-400 to-amber-500 border border-white p-8 rounded-lg shadow-lg shadow-yellow-500/50 text-white">
                   <h3 className="text-2xl font-semibold mb-4">
                     Interessado nesta Oportunidade?
                   </h3>
                   <p className="mb-6 opacity-90">
                     Entre em contato com nossos especialistas para saber mais detalhes e agendar uma visita.
                   </p>
-                  <button
-                    onClick={handleWhatsApp}
-                    className="w-full bg-white text-blue-600 font-bold py-4 px-6 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 flex items-center justify-center space-x-2 text-lg"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    <span>Saiba Mais</span>
-                  </button>
+                  <div className="flex gap-3 flex-col sm:flex-row">
+                    <button
+                      onClick={handleWhatsApp}
+                      className="flex-1 bg-white text-yellow-600 font-bold py-2 px-4 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 flex items-center justify-center space-x-2 text-sm"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Saiba Mais</span>
+                    </button>
+                    <button
+                      onClick={() => setShowShareMenu(!showShareMenu)}
+                      className="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center space-x-2 text-sm relative"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>Compartilhar</span>
+                      
+                      {/* Share Menu */}
+                      {showShareMenu && (
+                        <div className="absolute bottom-full left-0 mb-2 bg-white rounded-lg shadow-lg py-2 min-w-max">
+                          <button
+                            onClick={() => handleShare('whatsapp')}
+                            className="w-full px-4 py-2 text-green-600 hover:bg-green-50 font-medium flex items-center gap-2"
+                          >
+                            <span>WhatsApp</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare('facebook')}
+                            className="w-full px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium flex items-center gap-2"
+                          >
+                            <span>Facebook</span>
+                          </button>
+                          <button
+                            onClick={() => handleShare('instagram')}
+                            className="w-full px-4 py-2 text-pink-600 hover:bg-pink-50 font-medium flex items-center gap-2"
+                          >
+                            <span>Instagram</span>
+                          </button>
+                        </div>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -254,6 +340,99 @@ export default function ProductDetail({ item, isProduct }: Props) {
           </div>
         </div>
       </main>
+
+      {/* Image Zoom Modal */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
+          onClick={() => {
+            setIsModalOpen(false)
+            setZoom(1)
+          }}
+        >
+          {/* Close Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsModalOpen(false)
+              setZoom(1)
+            }}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-[70]"
+          >
+            <X className="h-8 w-8" />
+          </button>
+
+          {/* Image Container with Zoom */}
+          <div 
+            className="relative w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="overflow-auto max-w-4xl max-h-[90vh] flex items-center justify-center">
+              <img
+                src={images[currentImageIndex]}
+                alt={item.title}
+                style={{ transform: `scale(${zoom})` }}
+                className="transition-transform duration-200 cursor-zoom-in select-none"
+              />
+            </div>
+
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-lg">
+              <button
+                onClick={() => setZoom(Math.max(1, zoom - 0.2))}
+                className="text-white hover:text-yellow-500 transition-colors"
+              >
+                <span className="text-2xl">−</span>
+              </button>
+              <span className="text-white font-semibold min-w-[60px] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                onClick={() => setZoom(Math.min(3, zoom + 0.2))}
+                className="text-white hover:text-yellow-500 transition-colors"
+              >
+                <span className="text-2xl">+</span>
+              </button>
+              <div className="w-px h-6 bg-white/20"></div>
+              <button
+                onClick={() => setZoom(1)}
+                className="text-white hover:text-yellow-500 transition-colors text-sm font-medium"
+              >
+                Reset
+              </button>
+            </div>
+
+            {/* Image Navigation */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => {
+                    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+                    setZoom(1)
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full backdrop-blur-sm transition-opacity"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+                    setZoom(1)
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full backdrop-blur-sm transition-opacity"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                {/* Image Indicator */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-white font-medium">
+                  {currentImageIndex + 1} / {images.length}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
