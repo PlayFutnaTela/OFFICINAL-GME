@@ -12,7 +12,7 @@ export default function PreferencesPage() {
     <div className="space-y-6 pb-12">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <Settings className="w-6 h-6 text-blue-600" />
+          <Settings className="w-6 h-6 text-yellow-500" />
           <h1 className="text-3xl font-bold tracking-tight">Suas Preferências</h1>
         </div>
         <p className="text-gray-600 mt-2">
@@ -22,7 +22,7 @@ export default function PreferencesPage() {
 
       <UserPreferencesForm />
 
-      <Card className="p-6 bg-blue-50 border-blue-200">
+      <Card className="p-6 bg-yellow-50 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform max-w-2xl">
         <h3 className="font-semibold text-gray-900 mb-2">💡 Como funciona o Match Inteligente?</h3>
         <ul className="space-y-2 text-sm text-gray-700">
           <li>
@@ -44,7 +44,7 @@ export default function PreferencesPage() {
         </ul>
       </Card>
 
-      <Card className="p-6 bg-green-50 border-green-200">
+      <Card className="p-6 bg-yellow-50 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform max-w-2xl">
         <h3 className="font-semibold text-gray-900 mb-2">✨ Benefícios das Preferências</h3>
         <ul className="space-y-2 text-sm text-gray-700">
           <li>

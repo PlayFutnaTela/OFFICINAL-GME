@@ -144,18 +144,18 @@ export default function ProfilePage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/30">
+                    <Card className="border border-white bg-gradient-to-br from-amber-50 to-yellow-50/30 hover:shadow-[0_8px_24px_rgba(217,119,6,0.3)] transition-all duration-300 ease-out hover:-translate-y-1 cursor-pointer">
                         <CardContent className="pt-6">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0" />
-                                    <h3 className="font-semibold text-blue-900">Match Inteligente</h3>
+                                    <Sparkles className="h-6 w-6 text-amber-600 flex-shrink-0" />
+                                    <h3 className="font-semibold text-amber-900">Match Inteligente</h3>
                                 </div>
-                                <p className="text-sm text-blue-800 leading-relaxed">
+                                <p className="text-sm text-amber-800 leading-relaxed">
                                     Configure suas preferências para receber recomendações de oportunidades personalizadas. Nosso sistema analisará seus gostos e enviará sugestões perfeitas para você.
                                 </p>
                                 <Link href="/perfil/preferencias" className="block">
-                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2">
+                                    <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center gap-2">
                                         Configurar Preferências
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
@@ -282,21 +282,21 @@ export default function ProfilePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Shield className="h-5 w-5 text-blue-600" />
+                                <Shield className="h-5 w-5 text-amber-600" />
                                 Segurança
                             </CardTitle>
                             <CardDescription>Gerencie sua senha e acesso</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                                <h4 className="font-medium text-blue-900 mb-1">Senha</h4>
-                                <p className="text-sm text-blue-700 mb-4">
+                            <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+                                <h4 className="font-medium text-amber-900 mb-1">Senha</h4>
+                                <p className="text-sm text-amber-700 mb-4">
                                     Recomendamos alterar sua senha periodicamente para manter sua conta segura.
                                 </p>
                                 <div className="flex justify-start">
                                     <ChangePasswordModal
                                         trigger={
-                                            <Button variant="outline" className="text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-800">
+                                            <Button variant="outline" className="text-amber-700 border-amber-200 hover:bg-amber-50 hover:text-amber-800">
                                                 Alterar Senha
                                             </Button>
                                         }

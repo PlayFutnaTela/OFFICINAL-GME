@@ -6,18 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Settings, Save } from 'lucide-react'
-
-const CATEGORIES = [
-  'Aeronaves',
-  'Embarcações',
-  'Veículos de Luxo',
-  'Imóveis',
-  'Investimentos',
-  'Arte e Colecionáveis',
-  'Joias e Acessórios',
-  'Experiências Exclusivas',
-  'Memberships',
-]
+import { SITE_CATEGORIES } from '@/lib/categories'
 
 const LOCATIONS = [
   'São Paulo',
@@ -199,9 +188,9 @@ export function UserPreferencesForm() {
   return (
     <div className="max-w-4xl space-y-6">
       {/* Seção: Categorias de Interesse */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <div className="flex items-center gap-2 mb-4">
-          <Settings className="w-5 h-5 text-blue-600" />
+          <Settings className="w-5 h-5 text-yellow-500" />
           <h2 className="text-xl font-semibold text-gray-900">
             Categorias de Interesse
           </h2>
@@ -210,13 +199,13 @@ export function UserPreferencesForm() {
           Selecione as categorias que mais te interessam para receber recomendações personalizadas
         </p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {CATEGORIES.map((category) => (
+          {SITE_CATEGORIES.map((category) => (
             <label key={category} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={preferences.interests.includes(category)}
                 onChange={() => toggleCategory(category)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                className="w-4 h-4 rounded border-gray-300 text-yellow-500"
               />
               <span className="text-gray-700">{category}</span>
             </label>
@@ -225,7 +214,7 @@ export function UserPreferencesForm() {
       </Card>
 
       {/* Seção: Faixa de Preço */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Faixa de Preço</h2>
         <div className="grid grid-cols-2 gap-6">
           <div>
@@ -241,7 +230,7 @@ export function UserPreferencesForm() {
                   min_price: Number(e.target.value),
                 }))
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -257,14 +246,14 @@ export function UserPreferencesForm() {
                   max_price: Number(e.target.value),
                 }))
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             />
           </div>
         </div>
       </Card>
 
       {/* Seção: Localizações Preferidas */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Localizações Preferidas
         </h2>
@@ -278,7 +267,7 @@ export function UserPreferencesForm() {
                 type="checkbox"
                 checked={preferences.preferred_locations.includes(location)}
                 onChange={() => toggleLocation(location)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                className="w-4 h-4 rounded border-gray-300 text-yellow-500"
               />
               <span className="text-gray-700">{location}</span>
             </label>
@@ -287,7 +276,7 @@ export function UserPreferencesForm() {
       </Card>
 
       {/* Seção: Nível de Urgência */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Nível de Urgência</h2>
         <p className="text-sm text-gray-600 mb-4">
           Isso ajuda a priorizar as recomendações que você recebe
@@ -315,7 +304,7 @@ export function UserPreferencesForm() {
       </Card>
 
       {/* Seção: Frequência de Notificações */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Frequência de Notificações
         </h2>
@@ -333,7 +322,7 @@ export function UserPreferencesForm() {
                     notification_frequency: e.target.value as any,
                   }))
                 }
-                className="w-4 h-4 text-blue-600"
+                className="w-4 h-4 text-yellow-500"
               />
               <span className="text-gray-700">{freq.label}</span>
             </label>
@@ -342,7 +331,7 @@ export function UserPreferencesForm() {
       </Card>
 
       {/* Seção: Canais de Notificação */}
-      <Card className="p-6">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-300/60 transition-shadow duration-300 hover:translate-y-[-2px] transition-transform">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Canais de Notificação</h2>
         <p className="text-sm text-gray-600 mb-4">
           Escolha como você quer ser notificado sobre oportunidades
@@ -358,7 +347,7 @@ export function UserPreferencesForm() {
                   email_notifications: e.target.checked,
                 }))
               }
-              className="w-4 h-4 rounded border-gray-300 text-blue-600"
+              className="w-4 h-4 rounded border-gray-300 text-yellow-500"
             />
             <span className="text-gray-700">📧 Email</span>
           </label>
@@ -373,7 +362,7 @@ export function UserPreferencesForm() {
                 }))
               }
               disabled
-              className="w-4 h-4 rounded border-gray-300 text-blue-600"
+              className="w-4 h-4 rounded border-gray-300 text-yellow-500"
             />
             <span className="text-gray-700">📱 Push (em breve)</span>
           </label>
@@ -388,7 +377,7 @@ export function UserPreferencesForm() {
                 }))
               }
               disabled
-              className="w-4 h-4 rounded border-gray-300 text-blue-600"
+              className="w-4 h-4 rounded border-gray-300 text-yellow-500"
             />
             <span className="text-gray-700">💬 SMS (em breve)</span>
           </label>
@@ -396,11 +385,11 @@ export function UserPreferencesForm() {
       </Card>
 
       {/* Botão de Salvar */}
-      <Card className="p-6 bg-blue-50 border-blue-200">
+      <Card className="p-6 border border-white shadow-lg shadow-yellow-200/50">
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 flex items-center justify-center gap-2"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-3 flex items-center justify-center gap-2"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Salvando...' : 'Salvar Preferências'}
