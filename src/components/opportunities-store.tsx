@@ -234,7 +234,7 @@ export default function OpportunitiesStore({
   }
 
 
-  const categories = ['all', 'Carros de Luxo', 'Imóveis', 'Empresas', 'Premium', 'Eletrônicos', 'Cartas Contempladas', 'Indústrias', 'Embarcações']
+  const categories = ['all', 'Carros de Luxo', 'Imóveis', 'Empresas', 'Premium', 'Eletrônicos', 'Cartas Contempladas', 'Indústrias', 'Embarcações', 'Aeronaves']
 
   // Map for category icons
   const categoryIcons: Record<string, string> = {
@@ -245,7 +245,8 @@ export default function OpportunitiesStore({
     'Eletrônicos': '/icones-categorias/eletronicos.png',
     'Cartas Contempladas': '/icones-categorias/Cartascontempladas.png',
     'Indústrias': '/icones-categorias/industrias.png',
-    'Embarcações': '/icones-categorias/embarcacoes.png'
+    'Embarcações': '/icones-categorias/embarcacoes.png',
+    'Aeronaves': '/icones-categorias/aeronaves.png'
   }
   const statuses = ['all', 'novo', 'em_negociacao', 'vendido', 'Ativo']
   const types = [

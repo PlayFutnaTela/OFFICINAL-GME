@@ -2,7 +2,7 @@
 
 ## Visão Geral do Projeto
 
-O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para gestão de oportunidades de negócios, **clientes** e pipeline de vendas. O sistema permite o gerenciamento de oportunidades de negócios em diferentes categorias (carros, imóveis, empresas e itens premium), gestão de clientes (leads) e visualização do pipeline de vendas em formato Kanban.
+O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma completa para gestão de oportunidades de negócios, **clientes**, pipeline de vendas, sistema de convites privados, assistente concierge e solicitações de produtos/serviços. O sistema permite o gerenciamento de oportunidades de negócios em diferentes categorias (carros, imóveis, empresas e itens premium), gestão de clientes (leads), visualização do pipeline de vendas em formato Kanban, sistema de convites privados exclusivos com aprovação administrativa e funcionalidades de concierge para suporte personalizado.
 
 ## Arquitetura e Tecnologias Utilizadas
 
@@ -18,6 +18,9 @@ O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma para ges
  - **Toasts**: Sonner
  - **3D/GLSL**: react-three-fiber, three.js, ShaderMaterials personalizados
  - **Menus e Interações**: componentes customizados em `style/` (ex.: `appmenu.tsx`, `efeito-sidebar.tsx`)
+ - **Emails**: Resend para envio de comunicações
+ - **Drag and Drop**: @dnd-kit para funcionalidades interativas
+ - **UI Avançada**: @ark-ui/react para componentes acessíveis
 
 ### Backend
 - **Backend as a Service**: Supabase (Autenticação, Banco de Dados, Armazenamento)
@@ -99,6 +102,11 @@ O projeto está dividido em duas partes principais:
   - `rls_admins_only.sql`
   - `tarefas_sistema.sql`
   - `verify_logs_and_tasks.sql`
+  - `concierge_folders_table.sql`
+  - `concierge_conversations_table.sql`
+  - `pedido_requests_table.sql`
+  - `concierge_settings_table.sql`
+  - `audit_logs_system.sql`
 
 ## Atualizações e correções recentes (resumo técnico)
 
@@ -194,6 +202,84 @@ O projeto está dividido em duas partes principais:
  #### 8. `products` (Produtos) [ATUALIZADO]
  - Campo `currency` adicionado, RLS ajustadas para leitura/associação com tarefas.
 
+#### 9. `invites` (Convites) [NOVO]
+- `id`: UUID (chave primária)
+- `code`: Texto (código único do convite no formato GZM-XXXXX)
+- `created_by`: UUID (usuário que criou o convite)
+- `status`: Texto (status do convite: 'unused', 'used')
+- `category`: Texto (categoria do convite: 'standard', etc.)
+- `max_uses`: Inteiro (número máximo de usos permitidos)
+- `times_used`: Inteiro (contador de usos)
+- `notes`: Texto (notas adicionais sobre o convite)
+- `created_at`: Timestamp (data de criação)
+- `used_by`: UUID (usuário que utilizou o convite)
+- `used_at`: Timestamp (data de utilização)
+- `expires_at`: Timestamp (data de expiração opcional)
+- `created_by_profile`: UUID (perfil do criador)
+- `invite_type`: Texto (tipo do convite)
+
+#### 10. `pending_members` (Membros Pendentes) [NOVO]
+- `id`: UUID (chave primária)
+- `invite_code`: Texto (código do convite utilizado)
+- `name`: Texto (nome do candidato)
+- `phone`: Texto (telefone do candidato)
+- `email`: Texto (email do candidato)
+- `status`: Texto (status: 'pending', 'approved', 'rejected')
+- `extra_info`: JSON (informações adicionais)
+- `reviewed_by`: UUID (usuário que revisou)
+- `reviewed_at`: Timestamp (data de revisão)
+- `rejection_reason`: Texto (motivo da rejeição)
+- `applied_at`: Timestamp (data da aplicação)
+
+#### 11. `audit_logs` (Logs de Auditoria) [NOVO]
+- `id`: UUID (chave primária)
+- `action`: Texto (ação realizada)
+- `table_name`: Texto (nome da tabela)
+- `record_id`: UUID (ID do registro)
+- `old_values`: JSON (valores antigos)
+- `new_values`: JSON (novos valores)
+- `user_id`: UUID (usuário que realizou a ação)
+- `ip_address`: Texto (endereço IP)
+- `user_agent`: Texto (user agent)
+- `timestamp`: Timestamp (data da ação)
+
+#### 12. `concierge_folders` (Pastas de Concierge) [NOVO]
+- `id`: UUID (chave primária)
+- `name`: Texto (nome da pasta)
+- `description`: Texto (descrição da pasta)
+- `position`: Inteiro (ordem de exibição)
+- `user_id`: UUID (usuário proprietário)
+- `created_at`: Timestamp (data de criação)
+
+#### 13. `concierge_conversations` (Conversas de Concierge) [NOVO]
+- `id`: UUID (chave primária)
+- `folder_id`: UUID (pasta de origem)
+- `title`: Texto (título da conversa)
+- `description`: Texto (descrição)
+- `status`: Texto (status da conversa)
+- `assigned_to`: UUID (usuário atribuído)
+- `created_at`: Timestamp (data de criação)
+- `updated_at`: Timestamp (data de atualização)
+
+#### 14. `concierge_settings` (Configurações de Concierge) [NOVO]
+- `id`: UUID (chave primária)
+- `key`: Texto (chave da configuração)
+- `value`: Texto (valor da configuração)
+- `description`: Texto (descrição)
+- `updated_at`: Timestamp (data de atualização)
+
+#### 15. `pedido_requests` (Solicitações de Pedidos) [NOVO]
+- `id`: UUID (chave primária)
+- `user_id`: UUID (usuário que solicitou)
+- `title`: Texto (título do pedido)
+- `description`: Texto (descrição do pedido)
+- `category`: Texto (categoria do pedido)
+- `status`: Texto (status: 'pending', 'in_progress', 'completed', 'rejected')
+- `created_at`: Timestamp (data de criação)
+- `updated_at`: Timestamp (data de atualização)
+- `assigned_to`: UUID (usuário atribuído)
+- `response`: Texto (resposta fornecida)
+
 ## Segurança e Permissões
 
 O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
@@ -212,6 +298,11 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Login por e-mail/senha via Supabase Auth
 - Sessão persistente
 - Segurança baseada em RLS para proteger dados de cada usuário
+- Registro de novos usuários com validação de código de convite
+- Recuperação de senha com tokens temporários
+- Sistema de aprovação de novos membros com fluxo administrativo
+- Perfis com diferentes níveis de acesso (usuário/admin)
+- Armazenamento de informações adicionais nos perfis (interesses, WhatsApp)
 
 ### 2. Dashboard
 - Visão geral com métricas resumidas:
@@ -282,6 +373,12 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
  - Sonner para feedback instantâneo ao usuário
  - Radix UI e Shadcn para acessibilidade e consistência visual
  - React Three Fiber para efeitos visuais diferenciados
+ - Resend para envio de emails automatizados
+ - Webhooks para integração com Discord/Make e outros serviços
+ - @dnd-kit para funcionalidades de arrastar e soltar
+ - Navegação responsiva com mobile menu
+ - Componentes de sidebar e topbar com animações
+ - Design mobile-first com suporte a todos os dispositivos
 
 ### 9. Sistema de Tarefas e Timeline (Novo)
 - Gestão de tarefas associadas a oportunidades/produtos:
@@ -298,6 +395,54 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
  - Associação de tarefas a oportunidades e produtos
  - Filtros por status e ordenação
  - Ações com feedback via toasts
+
+### 10. Sistema de Convites Privados (Novo)
+- Geração de códigos de convite exclusivos para acesso premium:
+  - Criação de convites com categorias e limites de uso
+  - Controle de uso (quantidade de utilizações)
+  - Histórico de utilização e status (usado, não usado)
+- Página pública de solicitação de convite:
+  - Formulário com campos: nome, email, WhatsApp, motivo da solicitação
+  - Validação de código de convite
+  - Processo de cadastro com informações do candidato
+- Aprovação administrativa de candidatos:
+  - Painel de administração para revisão de solicitações
+  - Aprovação/rejeição com motivos
+  - Criação automática de contas para candidatos aprovados
+  - Envio automático de emails com credenciais temporárias
+- Sistema de auditoria:
+  - Registro de todas as operações (criação de convites, solicitações, aprovações)
+  - Log de ações administrativas
+- Integração com webhook:
+  - Notificações para canais externos (Discord, Make, etc.)
+  - Integração com serviços de email (Resend)
+- Controle de perfis:
+  - Armazenamento de código de convite de origem
+  - Armazenamento de informações adicionais de interesse
+  - Contato de WhatsApp no perfil do usuário
+
+### 11. Sistema de Concierge (Novo)
+- Painel administrativo exclusivo para suporte premium:
+  - Interface de gerenciamento de conversas e clientes
+  - Sistema de pastas organizacionais para categorização
+  - Configurações de webhook para integrações externas
+  - Atribuição de conversas a perfis de administradores
+- Gerenciamento de conversas:
+  - Criação e organização de conversas por cliente
+  - Histórico de interações
+  - Organização por pastas e categorias
+- Integrações externas:
+  - Configuração de URLs de webhook para notificações
+  - Integração com sistemas externos de atendimento
+- Acesso restrito:
+  - Disponível apenas para usuários com role 'adm'
+
+### 12. Sistema de Solicitação de Pedidos/Produtos (Novo)
+- Interface para solicitação de produtos/serviços específicos:
+  - Formulário para solicitação de itens não disponíveis na plataforma
+  - Sistema de solicitações com status de acompanhamento
+  - Painel administrativo para gerenciamento de solicitações
+  - Funcionalidades CRUD para gerenciamento de pedidos
 
 ### Observações de Build / Deploy (Vercel)
 
@@ -348,6 +493,16 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Gráficos interativos com tooltips explicativos
  - Ícones consistentes com Lucide
  - Carrossel e efeitos de hover/customização no `style/`
+ - Efeitos 3D com react-three-fiber e three.js
+ - Shaders personalizados para backgrounds e efeitos visuais
+ - Componentes de UI avançados com @ark-ui/react
+ - Carrossel de banners e imagens com efeitos especiais
+ - Efeitos de sidebar e menu com animações personalizadas
+ - Componentes de upload de avatar com preview
+ - Layout responsivo com mobile-first approach
+ - Componentes de formulário acessíveis com Radix UI
+ - Feedback visual com Sonner para notificações
+ - Efeitos hover e interações com Framer Motion
 
 ## Recursos Implementados
 
@@ -357,6 +512,26 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Tooltips explicativos em todos os gráficos
 - Seleção dinâmica de período
 - Dados em tempo real do banco de dados
+
+### Páginas e Funcionalidades Adicionais
+- Página pública de solicitação de convite com formulário completo
+- Página de validação de convite com processo de cadastro
+- Página de concierge exclusiva para administradores
+- Página de solicitação de pedidos/produtos
+- Painel administrativo para gerenciamento de convites
+- Sistema de aprovação de membros com fluxo completo
+- Gerenciamento de perfis com edição de informações
+- Sistema de categorias e produtos
+- Gerenciamento de links compartilháveis
+- Funcionalidades de favoritos
+- Sistema de insumos e categorias
+- Componentes de upload de imagens com preview
+- Modal de criação e edição de oportunidades
+- Modal de compartilhamento via WhatsApp
+- Sistema de recuperação de senha
+- Formulário de registro com validação de convite
+- Gerenciamento de tarefas com diferentes status
+- Timeline de atividades com logs detalhados
 
 ### Gráficos Específicos
 1. **Taxa de Conversão por Estágio do Funil**
@@ -477,6 +652,14 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
  - **[NOVO]** Feedback consistente com toasts (Sonner)
  - **[NOVO]** Políticas RLS abrangentes com scripts de diagnóstico
  - **[NOVO]** Integração de links compartilháveis e associação de tarefas a produtos
+ - **[NOVO]** Sistema completo de convites privados com aprovação administrativa
+ - **[NOVO]** Sistema de auditoria e logs detalhados de todas as operações
+ - **[NOVO]** Integração com serviços de email (Resend) para comunicações automatizadas
+ - **[NOVO]** Sistema de concierge para suporte premium com atribuição de conversas
+ - **[NOVO]** Funcionalidade de solicitação de pedidos/produtos com acompanhamento
+ - **[NOVO]** Webhooks e integrações com serviços externos (Discord, Make, etc.)
+ - **[NOVO]** Sistema completo de aprovação de membros com fluxo de revisão
+ - **[NOVO]** Drag and drop e interface avançada com @dnd-kit
 
 ### Melhorias Potenciais
 - Implementação de testes unitários e de integração para Server Actions
@@ -498,6 +681,6 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 
 ## Conclusão
 
-O sistema GEREZIM é um MVP bem estruturado e funcional que atende às necessidades básicas de uma plataforma de intermediação de negócios. Com um dashboard completo e gráficos interativos, o sistema oferece insights valiosos sobre o desempenho de vendas. A arquitetura baseada em Next.js e Supabase fornece uma base sólida para extensões e melhorias futuras.
- 
- Com as melhorias recentes — tarefas com logging, timeline administrativa, RPC segura, RLS robusta, efeitos visuais e feedback instantâneo — o projeto está pronto para evoluir com confiabilidade e uma experiência de usuário superior.
+O sistema GEREZIM é um MVP bem estruturado e funcional que atende às necessidades avançadas de uma plataforma de intermediação de negócios. Com um dashboard completo e gráficos interativos, sistema de convites privados exclusivos, assistente concierge e funcionalidades de solicitação de pedidos, o sistema oferece insights valiosos sobre o desempenho de vendas e uma experiência premium para usuários selecionados. A arquitetura baseada em Next.js e Supabase fornece uma base sólida para extensões e melhorias futuras.
+
+ Com as melhorias recentes — tarefas com logging, timeline administrativa, sistema de convites com aprovação, concierge para suporte premium, RPC segura, RLS robusta, efeitos visuais e feedback instantâneo — o projeto está pronto para evoluir com confiabilidade e uma experiência de usuário superior em todos os aspectos do negócio.

@@ -7,12 +7,6 @@ import {
 } from 'recharts';
 
 // Tipos para os dados
-type OpportunityData = {
-  category: string;
-  count: number;
-  value: number;
-};
-
 type TimelineData = {
   month: string;
   opportunities: number;
@@ -24,8 +18,13 @@ type PipelineData = {
   value: number;
 };
 
+type ActiveProductsByCategoryData = {
+  category: string;
+  count: number;
+  percent: number;
+};
+
 interface DashboardChartsProps {
-  opportunityData: OpportunityData[]; // category,count,value
   topProducts: { name: string; price: number }[]; // top 5 products
   timelineData: TimelineData[]; // month, opportunities, value (revenue)
   pipelineData: PipelineData[];
@@ -33,20 +32,26 @@ interface DashboardChartsProps {
   avgValueByCategoryData?: { category: string; avgValue: number }[]; // Novo tipo para valor mÃ©dio por categoria
   valueDistributionData?: { range: string; count: number }[]; // Novo tipo para distribuiÃ§Ã£o de valor
   topSellingProductsData?: { name: string; sold: number; revenue: number }[]; // Novo tipo para produtos mais vendidos
+  activeProductFinancials?: { label: string; value: number }[]; // Totais financeiros produtos ativos
+  activeProductsByCategoryData?: ActiveProductsByCategoryData[];
 }
 
 const COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#FBBF24'];
 
 export default function DashboardCharts({
-  opportunityData,
   topProducts,
   timelineData,
   pipelineData,
   conversionRateData = [],
   avgValueByCategoryData = [],
   valueDistributionData = [],
-  topSellingProductsData = []
+  topSellingProductsData = [],
+  activeProductFinancials = [],
+  activeProductsByCategoryData = []
 }: DashboardChartsProps) {
+
+  const currencyFormatter = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -63,8 +68,31 @@ export default function DashboardCharts({
     return null;
   };
 
-  const CustomPieLabel = (entry: any) => {
-    return `${entry.category}: ${entry.count}`;
+  const FinancialTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const entry = payload[0];
+      return (
+        <div className="bg-gray-800 text-white p-2 rounded text-xs">
+          <p className="font-semibold">{entry.payload.label}</p>
+          <p>{currencyFormatter(entry.value)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const ActiveCategoryTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const entry = payload[0];
+      return (
+        <div className="bg-gray-800 text-white p-2 rounded text-xs">
+          <p className="font-semibold">{entry.payload.category}</p>
+          <p>{entry.value} produtos</p>
+          <p>{entry.payload.percent.toFixed(1)}%</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -125,6 +153,33 @@ export default function DashboardCharts({
         </div>
       )}
 
+      {/* Gráfico de Barras - Totais Financeiros de Produtos Ativos */}
+      {activeProductFinancials && activeProductFinancials.length > 0 && (
+        <div className="bg-white p-6 rounded-lg border overflow-visible">
+          <div className="flex items-center mb-4">
+            <h3 className="text-lg font-semibold flex-grow">Produtos Ativos — Totais Financeiros</h3>
+            <div className="tooltip-group relative">
+              <div className="tooltip-trigger cursor-help text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="tooltip-content absolute z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+                Compara o valor total dos produtos ativos com o montante de comissão atrelado a eles.
+              </div>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={activeProductFinancials} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" tickFormatter={currencyFormatter} label={{ value: 'Valor (R$)', position: 'insideBottomRight' }} />
+              <YAxis dataKey="label" type="category" width={200} />
+              <Tooltip content={<FinancialTooltip />} />
+              <Bar dataKey="value" fill="#10B981" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
       {/* GrÃ¡fico de DistribuiÃ§Ã£o de Oportunidades por Valor */}
       {valueDistributionData && valueDistributionData.length > 0 && (
         <div className="bg-white p-6 rounded-lg border overflow-visible">
@@ -181,11 +236,11 @@ export default function DashboardCharts({
         </div>
       )}
 
-      {/* GrÃ¡fico de Pizza - Oportunidades por Categoria */}
-      {opportunityData && opportunityData.length > 0 && (
+      {/* Gráfico de Rosca - Produtos Ativos por Categoria */}
+      {activeProductsByCategoryData && activeProductsByCategoryData.length > 0 && (
         <div className="bg-white p-6 rounded-lg border overflow-visible">
           <div className="flex items-center mb-4">
-            <h3 className="text-lg font-semibold flex-grow">Oportunidades por Categoria</h3>
+            <h3 className="text-lg font-semibold flex-grow">Produtos Ativos por Categoria (percentual)</h3>
             <div className="tooltip-group relative">
               <div className="tooltip-trigger cursor-help text-gray-400 hover:text-gray-600">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -193,27 +248,27 @@ export default function DashboardCharts({
                 </svg>
               </div>
               <div className="tooltip-content absolute z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
-                DistribuiÃ§Ã£o percentual das oportunidades por categoria
+                Percentual de produtos com status ativo distribuído por categoria
               </div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={opportunityData}
+                data={activeProductsByCategoryData}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={CustomPieLabel}
-                outerRadius={80}
+                innerRadius={70}
+                outerRadius={110}
                 fill="#8884d8"
                 dataKey="count"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
               >
-                {opportunityData.map((entry, index) => (
+                {activeProductsByCategoryData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ActiveCategoryTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </div>

@@ -7,7 +7,8 @@ export const SITE_CATEGORIES = [
   'Eletronicos',
   'Cartas Contempladas',
   'Industrias',
-  'Embarcações'
+  'Embarcações',
+  'Aeronaves'
 ]
 
 export default SITE_CATEGORIES

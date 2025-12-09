@@ -42,21 +42,11 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
   const activeValue = opportunities?.filter(o => o.status === 'em_negociacao').reduce((acc, curr) => acc + (Number(curr.value) || 0), 0) || 0
 
   // Prepare data for charts
-  // Oportunidades por categoria
+  // Oportunidades por categoria (mantemos o conjunto de categorias para uso nas médias)
   // Ensure we count ALL categories present in the DB and also include default known categories
   const knownCategories = ['carro', 'imovel', 'empresa', 'item_premium']
   const categoriesSet = new Set<string>(knownCategories)
   opportunities?.forEach(opp => { if (opp.category) categoriesSet.add(opp.category) })
-
-  const opportunityData = Array.from(categoriesSet).map(category => {
-    const count = (opportunities || []).filter(opp => opp.category === category).length
-    const value = (opportunities || []).filter(opp => opp.category === category).reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
-    return {
-      category: category === 'item_premium' ? 'Item Premium' : category.charAt(0).toUpperCase() + category.slice(1),
-      count,
-      value
-    }
-  })
 
   // Calculate Average Value by Category
   const avgValueByCategoryData = Array.from(categoriesSet).map(category => {
@@ -184,6 +174,43 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
     price: Number(p.price || 0)
   }))
 
+  const { data: activeProductsByCategoryRaw } = await supabase
+    .from('products')
+    .select('category')
+    .eq('status', 'active')
+
+  const categoryCounts: Record<string, number> = {}
+  ;(activeProductsByCategoryRaw || []).forEach(product => {
+    const category = product.category || 'Outros'
+    categoryCounts[category] = (categoryCounts[category] || 0) + 1
+  })
+
+  const totalActiveProducts = Object.values(categoryCounts).reduce((acc, curr) => acc + curr, 0)
+  const activeProductsByCategoryData = Object.entries(categoryCounts)
+    .map(([category, count]) => ({
+      name: category,
+      category,
+      count,
+      percent: totalActiveProducts > 0 ? (count / totalActiveProducts) * 100 : 0
+    }))
+    .sort((a, b) => b.count - a.count)
+
+  const { data: activeProductsRaw } = await supabase
+    .from('products')
+    .select('price, commission_percent')
+    .eq('status', 'active')
+
+  const totalAtivoPrice = (activeProductsRaw || []).reduce((acc, product) => acc + (Number(product.price) || 0), 0)
+  const totalAtivoCommission = (activeProductsRaw || []).reduce(
+    (acc, product) => acc + ((Number(product.price) || 0) * ((Number(product.commission_percent) || 0) / 100)),
+    0
+  )
+
+  const activeProductFinancials = [
+    { label: 'Valor total em produtos ativos', value: totalAtivoPrice },
+    { label: 'Comissão total em produtos ativos', value: totalAtivoCommission }
+  ]
+
   // Top selling products - only count closed/finalized opportunities
   const { data: productsWithOpportunities } = await supabase
     .from('opportunities')
@@ -276,7 +303,6 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
 
       {/* Gráficos */}
       <DashboardCharts
-        opportunityData={opportunityData}
         topProducts={topProducts}
         timelineData={timelineData}
         pipelineData={pipelineData}
@@ -284,6 +310,8 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
         avgValueByCategoryData={avgValueByCategoryData}
         valueDistributionData={valueDistributionData}
         topSellingProductsData={topSellingProductsData}
+        activeProductFinancials={activeProductFinancials}
+        activeProductsByCategoryData={activeProductsByCategoryData}
       />
     </div>
   )

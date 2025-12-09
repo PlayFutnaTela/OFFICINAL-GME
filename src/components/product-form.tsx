@@ -386,7 +386,7 @@ export default function ProductForm({ onCreated, onUpdated, onCancel, initialSes
           <select value={status} onChange={e => setStatus(e.target.value)} className="w-full border rounded px-3 py-2 mt-1">
             <option value="draft">Rascunho</option>
             <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
+            <option value="inactive">Vendido</option>
             <option value="archived">Arquivado</option>
           </select>
         </div>

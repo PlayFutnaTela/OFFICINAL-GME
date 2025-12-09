@@ -30,6 +30,7 @@ const CATEGORIES = [
   { value: 'eletronicos', label: 'Eletrônicos' },
   { value: 'embarcacoes', label: 'Embarcações' },
   { value: 'industrias', label: 'Indústrias' },
+  { value: 'aeronaves', label: 'Aeronaves' },
   { value: 'premium', label: 'Premium' },
   { value: 'outros', label: 'Outros' },
 ]

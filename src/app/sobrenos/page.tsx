@@ -25,6 +25,7 @@ export default function SobreNosPage() {
       { id: '6', name: 'Embarcações', icon: '/icones-categorias/embarcacoes.png' },
       { id: '7', name: 'Indústrias', icon: '/icones-categorias/industrias.png' },
       { id: '8', name: 'Premium', icon: '/icones-categorias/premium.png' },
+      { id: '9', name: 'Aeronaves', icon: '/icones-categorias/aeronaves.png' },
     ]
     setCategories(defaultCategories)
   }, [])

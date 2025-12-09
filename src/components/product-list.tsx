@@ -137,7 +137,7 @@ export default function ProductList({ products: initialProducts }: Props) {
                     }`}>
                       {product.status === 'active' ? 'Ativo' :
                        product.status === 'draft' ? 'Rascunho' :
-                       product.status === 'inactive' ? 'Inativo' : 'Arquivado'}
+                       product.status === 'inactive' ? 'Vendido' : 'Arquivado'}
                     </span>
                   </td>
                   <td className="py-2">{product.images.length} imagem(ns)</td>

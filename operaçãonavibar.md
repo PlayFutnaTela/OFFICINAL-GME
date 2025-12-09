@@ -13,7 +13,7 @@ Wireframe / especificações visuais
   - Botão central: 72px de diâmetro, círculo com leve ‘lift’ (elevation); icon-size interno ~24–52px (visual: o ícone/logo ocupa maior parte do botão). O botão deve ficar levemente deslocado pra cima (−10 a −14px) para dar ênfase.
   - Ícone e label: tamanhos de ícones menores 24px, labels em 12px quando visíveis.
 - Estados:
-  - Inativo: ícones dourados com 60–80% de opacidade sobre fundo navy.
+- Vendido: ícones dourados com 60–80% de opacidade sobre fundo navy.
   - Hover/Active: ícone dourado (`gold.500`) com glow leve / borda dourada 1-2px no item ativo.
   - Botão central: leve elevação com transformação translateY(−6px) e box-shadow mais forte quando ativo.
   - Transições suaves (200–300ms ease) para cor e transform.

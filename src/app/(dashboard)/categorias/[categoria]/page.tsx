@@ -23,7 +23,8 @@ export default async function CategoriaPage({ params }: Props) {
         'eletronicos': 'Eletrônicos',
         'cartas-contempladas': 'Cartas Contempladas',
         'industrias': 'Indústrias',
-        'embarcacoes': 'Embarcações'
+        'embarcacoes': 'Embarcações',
+        'aeronaves': 'Aeronaves'
     }
 
     const categorySlug = params.categoria
