@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Heart, FileText, TrendingUp, Calendar, Gift } from 'lucide-react'
 import { RecommendedOpportunities } from '@/components/recommended-opportunities'
+import { DashboardEmptyState } from '@/components/dashboard-empty-state'
 
 export const metadata = {
   title: 'Meu Dashboard - GEREZIM',
@@ -34,7 +35,7 @@ export default async function BuyerDashboardPage() {
       // Solicitações (do solicitar_pedidos)
       supabase
         .from('solicitar_pedidos')
-        .select('id, product_id, status, created_at, products!inner(name, category)')
+        .select('id, product_id, status, created_at, title, description, category, products!inner(name, category)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5),
@@ -141,32 +142,123 @@ export default async function BuyerDashboardPage() {
 
       {/* Seção: Itens Favoritos */}
       {favorites && favorites.length > 0 && (
-        <Card>
+        <Card className="border-red-200 bg-gradient-to-br from-red-50 to-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              Seus Favoritos
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+                Itens Favoritos ({favorites.length})
+              </CardTitle>
+              <a
+                href="/favoritos"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Ver Todos →
+              </a>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {favorites.map((fav: any) => (
-                <div
+                <a
                   key={fav.product_id}
-                  className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  href={`/produto/${fav.product_id}`}
+                  className="p-4 border border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all group"
                 >
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{fav.products?.name}</h3>
-                    <p className="text-sm text-gray-600">{fav.products?.category}</p>
-                    <p className="text-sm font-medium text-gray-900 mt-1">
-                      R$ {fav.products?.price?.toLocaleString('pt-BR')}
-                    </p>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 group-hover:text-red-700 transition-colors flex-1">
+                      {fav.products?.name}
+                    </h3>
                   </div>
-                  <a
-                    href={`/produto/${fav.product_id}`}
-                    className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                  >
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">
+                    {fav.products?.category}
+                  </p>
+                  <p className="text-lg font-bold text-gray-900">
+                    R$ {fav.products?.price?.toLocaleString('pt-BR')}
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 text-sm text-blue-600 group-hover:text-blue-800">
                     Ver Detalhes
+                    <span>→</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seção Vazia: Favoritos */}
+      {(!favorites || favorites.length === 0) && (
+        <DashboardEmptyState
+          icon={Heart}
+          title="Itens Favoritos"
+          description="Comece a explorar e adicione seus produtos favoritos à lista"
+          actionText="Explorar Oportunidades"
+          actionHref="/oportunidades"
+          borderColor="red"
+        />
+      )}
+
+      {/* Seção: Solicitações Recentes */}
+      {requests && requests.length > 0 && (
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                Histórico de Solicitações ({requests.length})
+              </CardTitle>
+              <a
+                href="/solicitar-pedido"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Nova Solicitação →
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {requests.map((req: any) => (
+                <div
+                  key={req.id}
+                  className="p-4 border border-blue-100 rounded-lg hover:border-blue-300 hover:bg-blue-100/30 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{req.products?.[0]?.name || req.title}</h3>
+                      <p className="text-sm text-gray-600">{req.products?.[0]?.category}</p>
+                    </div>
+                    <div
+                      className={`ml-4 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                        req.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : req.status === 'aceito' || req.status === 'accepted'
+                            ? 'bg-green-100 text-green-800'
+                            : req.status === 'rejected'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {req.status === 'pending'
+                        ? '⏳ Pendente'
+                        : req.status === 'aceito' || req.status === 'accepted'
+                          ? '✓ Aceito'
+                          : req.status === 'rejected'
+                            ? '✕ Rejeitado'
+                            : req.status.toUpperCase()}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">
+                    📅 {new Date(req.created_at).toLocaleDateString('pt-BR', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                  </p>
+                  {req.description && (
+                    <p className="text-sm text-gray-700 mb-2 line-clamp-2">{req.description}</p>
+                  )}
+                  <a
+                    href={`/solicitar-pedido/${req.id}`}
+                    className="inline-flex text-sm text-blue-600 hover:text-blue-800 font-medium mt-1"
+                  >
+                    Ver Detalhes →
                   </a>
                 </div>
               ))}
@@ -175,49 +267,16 @@ export default async function BuyerDashboardPage() {
         </Card>
       )}
 
-      {/* Seção: Solicitações Recentes */}
-      {requests && requests.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-500" />
-              Suas Solicitações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {requests.map((req: any) => (
-                <div
-                  key={req.id}
-                  className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{req.products?.[0]?.name}</h3>
-                    <p className="text-sm text-gray-600">{req.products?.[0]?.category}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enviado em {new Date(req.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <div
-                    className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${
-                      req.status === 'pendente'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : req.status === 'aceito'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {req.status === 'pendente'
-                      ? 'Pendente'
-                      : req.status === 'aceito'
-                        ? 'Aceito'
-                        : 'Recusado'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Seção Vazia: Solicitações */}
+      {(!requests || requests.length === 0) && (
+        <DashboardEmptyState
+          icon={FileText}
+          title="Histórico de Solicitações"
+          description="Não encontrou o que procura? Faça uma solicitação personalizada"
+          actionText="Fazer Solicitação"
+          actionHref="/solicitar-pedido"
+          borderColor="blue"
+        />
       )}
 
       {/* Seção: Negociações */}

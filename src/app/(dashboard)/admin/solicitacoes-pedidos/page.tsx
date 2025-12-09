@@ -96,7 +96,13 @@ export default function SolicitacoesPedidosPage() {
 
       // Buscar dados dos usuários separadamente
       if (solicitacoes && solicitacoes.length > 0) {
-        const userIds = [...new Set(solicitacoes.map(s => s.user_id))]
+        // Extrair IDs únicos dos usuários
+        const userIdsSet = new Set<string>()
+        solicitacoes.forEach(s => {
+          if (s.user_id) userIdsSet.add(s.user_id)
+        })
+        const userIds = Array.from(userIdsSet)
+        
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
           .select('id, full_name')
