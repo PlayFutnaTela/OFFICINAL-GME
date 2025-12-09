@@ -66,7 +66,8 @@ export async function calculateHybridMatch(
   const shouldNotify = hybridScore >= 65
 
   // Passo 5: Remover duplicatas nas razões
-  const uniqueReasons = Array.from(new Set(combinedReasons))
+  const uniqueReasonsSet = new Set<string>(combinedReasons)
+  const uniqueReasons = Array.from(uniqueReasonsSet)
 
   return {
     score: hybridScore,

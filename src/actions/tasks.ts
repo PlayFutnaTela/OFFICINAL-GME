@@ -293,7 +293,11 @@ export async function getTasksWithOpportunities(): Promise<any[]> {
 
       if (tasksError) throw tasksError
 
-      const itemIds = Array.from(new Set((tasksOnly || []).map((t: any) => t.opportunity_id).filter(Boolean)))
+      const opportunityIdSet = new Set<string>()
+      ;(tasksOnly || []).forEach((t: any) => {
+        if (t.opportunity_id) opportunityIdSet.add(t.opportunity_id)
+      })
+      const itemIds = Array.from(opportunityIdSet)
 
       let opportunitiesMap: Record<string, any> = {}
       let productsMap: Record<string, any> = {}
