@@ -8,7 +8,7 @@ export interface AIMatchAnalysis {
 }
 
 /**
- * Calcular match usando OpenAI API
+ * Calcular match usando OpenAI API ou AI Gateway (Vercel)
  * Análise sofisticada do perfil do usuário vs produto
  */
 export async function calculateAIMatch(
@@ -16,10 +16,12 @@ export async function calculateAIMatch(
   product: Product
 ): Promise<AIMatchAnalysis> {
   try {
-    const apiKey = process.env.OPENAI_API_KEY
+    // Verificar qual configuração usar: Vercel AI Gateway ou OpenAI direto
+    const useGateway = !!process.env.AI_GATEWAY_API_KEY
+    const useOpenAI = !!process.env.OPENAI_API_KEY
 
-    if (!apiKey) {
-      console.warn('OPENAI_API_KEY não configurada - usando fallback')
+    if (!useGateway && !useOpenAI) {
+      console.warn('Nenhuma API de IA configurada - usando fallback')
       return {
         score: 0,
         reasons: [],
@@ -60,36 +62,15 @@ Critérios de scoring:
 - 0-19: Não recomendado
 `.trim()
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    })
+    // Preferir AI Gateway (Vercel) se disponível, senão usar OpenAI direto
+    let content: string
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Erro da OpenAI API:', errorData)
-      throw new Error(`OpenAI API error: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    const content = data.choices?.[0]?.message?.content
-
-    if (!content) {
-      throw new Error('Resposta vazia da API')
+    if (useGateway) {
+      console.log('📡 Usando Vercel AI Gateway...')
+      content = await callVowelGateway(prompt)
+    } else {
+      console.log('🔑 Usando OpenAI API direto...')
+      content = await callOpenAIDirectly(prompt)
     }
 
     // Parse a resposta JSON
@@ -99,19 +80,107 @@ Critérios de scoring:
       score: Math.min(Math.max(analysis.score || 0, 0), 100),
       reasons: Array.isArray(analysis.reasons) ? analysis.reasons : [],
       analysis: analysis.analysis || '',
-      shouldNotify: analysis.shouldNotify || analysis.score >= 65,
+      shouldNotify: (analysis.score || 0) >= 65,
     }
   } catch (error) {
     console.error('Erro ao calcular AI match:', error)
-
-    // Fallback seguro
     return {
       score: 0,
-      reasons: ['Análise indisponível no momento'],
-      analysis: 'Erro ao processar análise',
+      reasons: ['Erro na análise de IA'],
+      analysis: 'Falha ao processar',
       shouldNotify: false,
     }
   }
+}
+
+/**
+ * Chamar Vercel AI Gateway
+ */
+async function callVowelGateway(prompt: string): Promise<string> {
+  const apiKey = process.env.AI_GATEWAY_API_KEY
+
+  if (!apiKey) {
+    throw new Error('AI_GATEWAY_API_KEY não configurada')
+  }
+
+  const response = await fetch('https://api.vercel.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-4-turbo-preview',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    console.error('Erro do AI Gateway:', errorData)
+    throw new Error(`AI Gateway error: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  const content = data.choices?.[0]?.message?.content
+
+  if (!content) {
+    throw new Error('Resposta vazia do AI Gateway')
+  }
+
+  return content
+}
+
+/**
+ * Chamar OpenAI API diretamente
+ */
+async function callOpenAIDirectly(prompt: string): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY não configurada')
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4-turbo-preview',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    console.error('Erro da OpenAI API:', errorData)
+    throw new Error(`OpenAI API error: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  const content = data.choices?.[0]?.message?.content
+
+  if (!content) {
+    throw new Error('Resposta vazia da API')
+  }
+
+  return content
 }
 
 /**
