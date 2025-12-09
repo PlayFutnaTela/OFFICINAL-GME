@@ -1,4 +1,5 @@
 import { MatchResult, UserProfile, Product } from './matching-engine'
+import { createClient } from '@/lib/supabase/server'
 
 export interface AIMatchAnalysis {
   score: number
@@ -191,7 +192,6 @@ export async function cacheAIAnalysis(
   analysis: AIMatchAnalysis
 ) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
     const supabase = createClient()
 
     await supabase.from('product_ai_scores').upsert({
@@ -211,7 +211,6 @@ export async function cacheAIAnalysis(
  */
 export async function getCachedAIAnalysis(productId: string) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
     const supabase = createClient()
 
     const { data } = await supabase
