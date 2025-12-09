@@ -262,7 +262,7 @@ export default function DashboardCharts({
                 outerRadius={110}
                 fill="#8884d8"
                 dataKey="count"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                label={({ name, percent = 0 }) => `${name}: ${((percent || 0) * 100).toFixed(1)}%`}
               >
                 {activeProductsByCategoryData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

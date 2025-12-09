@@ -8,7 +8,7 @@ export default async function Topbar({ user }: { user: any }) {
   const supabase = createClient()
 
   // Buscar dados do perfil
-  let profile = null
+  let profile: any = null
   try {
     const { data } = await supabase
       .from('profiles')
@@ -27,7 +27,7 @@ export default async function Topbar({ user }: { user: any }) {
   const role = profile?.role || 'user'
 
   // URL do avatar do Storage
-  let avatarUrl = null
+  let avatarUrl: string | null = null
   if (profile?.avatar_url) {
     const { data } = supabase.storage.from('avatars').getPublicUrl(profile.avatar_url)
     avatarUrl = data.publicUrl

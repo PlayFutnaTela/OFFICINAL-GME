@@ -73,10 +73,10 @@ export default function PipelineBoard({ initialOpportunities }: Props) {
             // Enrich each opportunity with contact and product data
             const enrichedData = await Promise.all(
                 opps.map(async (opp: any) => {
-                    let contact_name = null
-                    let contact_avatar = null
-                    let product_title = null
-                    let product_images = null
+                    let contact_name: string | null = null
+                    let contact_avatar: string | null = null
+                    let product_title: string | null = null
+                    let product_images: any = null
 
                     // Fetch contact data if contact_id exists
                     if (opp.contact_id) {

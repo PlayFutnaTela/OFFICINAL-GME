@@ -6,8 +6,8 @@ import { toast } from 'sonner'
 
 export default function ShowToast() {
   const searchParams = useSearchParams()
-  const success = searchParams.get('success')
-  const message = searchParams.get('message')
+  const success = searchParams?.get('success')
+  const message = searchParams?.get('message')
 
   useEffect(() => {
     if (success) {

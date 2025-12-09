@@ -7,10 +7,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 export default function PeriodSelector() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const current = searchParams?.get('range') || '30d'
+  const current = (searchParams?.get('range') || '30d') as string
 
   const onChange = (value: string) => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from((searchParams || new URLSearchParams()).entries()))
     if (value === 'all') {
       params.delete('range')
     } else {

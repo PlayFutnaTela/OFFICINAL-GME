@@ -213,7 +213,7 @@ export default function ProductDetail({ item, isProduct }: Props) {
                     Valor da Oportunidade
                   </p>
                   <p className="text-3xl sm:text-5xl font-bold text-yellow-500">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price || 0)}
                   </p>
                 </div>
 

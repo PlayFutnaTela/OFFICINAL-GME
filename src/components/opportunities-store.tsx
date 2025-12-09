@@ -620,9 +620,9 @@ export default function OpportunitiesStore({
                     width={300}
                     height={200}
                   />
-                ) : 'photos' in item && item.photos?.length > 0 ? (
+                ) : 'photos' in item && (item.photos as any)?.length > 0 ? (
                   <Image
-                    src={item.photos[0]}
+                    src={(item.photos as any)[0]}
                     alt={item.title}
                     className="w-full h-48 object-cover"
                     width={300}
@@ -768,9 +768,9 @@ export default function OpportunitiesStore({
                     width={128}
                     height={128}
                   />
-                ) : 'photos' in item && item.photos?.length > 0 ? (
+                ) : 'photos' in item && (item.photos as any)?.length > 0 ? (
                   <Image
-                    src={item.photos[0]}
+                    src={(item.photos as any)[0]}
                     alt={item.title}
                     className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
                     width={128}

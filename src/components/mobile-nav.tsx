@@ -33,7 +33,7 @@ export default function MobileNav() {
   const pathname = usePathname()
 
   // Don't show on auth pages
-  if (pathname === '/login' || pathname === '/register' || pathname === '/recuperar-senha' || pathname === '/auth/register' || pathname.startsWith('/auth/')) {
+  if (!pathname || pathname === '/login' || pathname === '/register' || pathname === '/recuperar-senha' || pathname === '/auth/register' || pathname.startsWith('/auth/')) {
     return null
   }
 
