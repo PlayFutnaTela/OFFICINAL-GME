@@ -4,8 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Product } from '@/lib/matching-engine'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export interface MatchNotificationData {
   userId: string
   productId: string
@@ -108,6 +106,14 @@ async function sendMatchEmail(
   data: MatchNotificationData
 ): Promise<boolean> {
   try {
+    // Instancia o Resend apenas se a chave existir, evitando erro em build
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      console.warn('RESEND_API_KEY não configurada; pulando envio de email')
+      return true // não bloquear fluxo
+    }
+    const resend = new Resend(apiKey)
+
     const productLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://gerezim.com.br'}/produto/${data.productId}`
     const matchPercentage = data.matchScore
 

@@ -31,7 +31,7 @@ export default async function LinksPage() {
     }
 
     // Fetch links
-    let links = []
+    let links: Awaited<ReturnType<typeof getLinks>> = []
     try {
         links = await getLinks()
     } catch (error) {

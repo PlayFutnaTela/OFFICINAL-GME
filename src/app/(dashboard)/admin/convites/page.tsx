@@ -285,7 +285,7 @@ export default function ConvitesAdminPage() {
         ];
 
         // 4. Tendência Diária (Gráfico de Linha) - últimos 7 dias
-        const dailyData = [];
+        const dailyData: { date: string; 'Solicitações': number }[] = [];
         for (let i = 6; i >= 0; i--) {
           const date = new Date();
           date.setDate(date.getDate() - i);
