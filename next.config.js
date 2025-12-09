@@ -4,7 +4,8 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**.supabase.co',
+                // Usar wildcard simples para evitar glob recursivo em micromatch
+                hostname: '*.supabase.co',
             },
         ],
         unoptimized: true, // Allow local images to be served without optimization
