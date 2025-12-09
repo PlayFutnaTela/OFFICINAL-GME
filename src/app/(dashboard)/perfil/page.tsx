@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { User } from '@supabase/supabase-js'
 import { SITE_CATEGORIES } from '@/lib/categories'
-import { UserCircle, Mail, Calendar, Shield, Save, Loader2 } from 'lucide-react'
+import { UserCircle, Mail, Calendar, Shield, Save, Loader2, Sparkles, ArrowRight } from 'lucide-react'
 import ChangePasswordModal from '@/components/change-password-modal'
 import { Button } from '@/components/ui/button'
 import AvatarUpload from '@/components/avatar-upload'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 export default function ProfilePage() {
     const { isChecking } = useRequireInviteValidation()
@@ -140,6 +141,26 @@ export default function ProfilePage() {
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded bg-gold-300 text-white font-semibold">{role.toUpperCase()}</span>
                             </h3>
                             <p className="text-sm text-gray-500">{user.email}</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/30">
+                        <CardContent className="pt-6">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                                    <h3 className="font-semibold text-blue-900">Match Inteligente</h3>
+                                </div>
+                                <p className="text-sm text-blue-800 leading-relaxed">
+                                    Configure suas preferências para receber recomendações de oportunidades personalizadas. Nosso sistema analisará seus gostos e enviará sugestões perfeitas para você.
+                                </p>
+                                <Link href="/perfil/preferencias" className="block">
+                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2">
+                                        Configurar Preferências
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
