@@ -15,7 +15,7 @@ export default async function ProdutosPage() {
   await requireAdminOrRedirect(supabase)
 
   // Fetch existing products — select only needed columns and limit to reduce payload
-  let products = []
+  let products: any[] = []
   try {
     const { data: prodData, error: prodError } = await supabase
       .from('products')
