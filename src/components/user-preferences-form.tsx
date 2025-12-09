@@ -56,6 +56,7 @@ interface UserPreferences {
   min_price: number
   max_price: number
   preferred_locations: string[]
+  international: boolean
   urgency_level: 'low' | 'normal' | 'high'
   notification_frequency: 'immediate' | 'daily' | 'weekly' | 'never'
   notifications_enabled: boolean
@@ -76,6 +77,7 @@ export function UserPreferencesForm() {
     min_price: 0,
     max_price: 1000000,
     preferred_locations: [],
+    international: false,
     urgency_level: 'normal',
     notification_frequency: 'daily',
     notifications_enabled: true,
@@ -154,6 +156,7 @@ export function UserPreferencesForm() {
           min_price: preferences.min_price,
           max_price: preferences.max_price,
           preferred_locations: preferences.preferred_locations,
+          international: preferences.international,
           urgency_level: preferences.urgency_level,
           notification_frequency: preferences.notification_frequency,
           notifications_enabled: preferences.notifications_enabled,
@@ -272,50 +275,46 @@ export function UserPreferencesForm() {
         </p>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Estados
             </label>
-            <select
-              multiple
-              value={preferences.preferred_locations.filter(l => l !== 'Internacional')}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, option => option.value)
-                const hasInternacional = preferences.preferred_locations.includes('Internacional')
-                setPreferences((prev) => ({
-                  ...prev,
-                  preferred_locations: hasInternacional ? [...selected, 'Internacional'] : selected,
-                }))
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-            >
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
               {STATES.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
+                <label key={state} className="flex items-center gap-2 cursor-pointer hover:bg-yellow-50 p-2 rounded transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={preferences.preferred_locations.includes(state)}
+                    onChange={() => {
+                      if (preferences.preferred_locations.includes(state)) {
+                        setPreferences((prev) => ({
+                          ...prev,
+                          preferred_locations: prev.preferred_locations.filter(l => l !== state),
+                        }))
+                      } else {
+                        setPreferences((prev) => ({
+                          ...prev,
+                          preferred_locations: [...prev.preferred_locations, state],
+                        }))
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-yellow-500"
+                  />
+                  <span className="text-sm text-gray-700">{state}</span>
+                </label>
               ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Use Ctrl+Click (ou Cmd+Click) para selecionar múltiplos estados
-            </p>
+            </div>
           </div>
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              checked={preferences.preferred_locations.includes('Internacional')}
-              onChange={() => {
-                if (preferences.preferred_locations.includes('Internacional')) {
-                  setPreferences((prev) => ({
-                    ...prev,
-                    preferred_locations: prev.preferred_locations.filter(l => l !== 'Internacional'),
-                  }))
-                } else {
-                  setPreferences((prev) => ({
-                    ...prev,
-                    preferred_locations: [...prev.preferred_locations, 'Internacional'],
-                  }))
-                }
-              }}
+              checked={preferences.international}
+              onChange={(e) =>
+                setPreferences((prev) => ({
+                  ...prev,
+                  international: e.target.checked,
+                }))
+              }
               className="w-4 h-4 rounded border-gray-300 text-yellow-500"
             />
             <span className="text-gray-700">🌍 Internacional</span>
