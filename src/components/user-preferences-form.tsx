@@ -8,15 +8,34 @@ import { toast } from 'sonner'
 import { Settings, Save } from 'lucide-react'
 import { SITE_CATEGORIES } from '@/lib/categories'
 
-const LOCATIONS = [
-  'São Paulo',
+const STATES = [
+  'Acre',
+  'Alagoas',
+  'Amapá',
+  'Amazonas',
+  'Bahia',
+  'Ceará',
+  'Distrito Federal',
+  'Espírito Santo',
+  'Goiás',
+  'Maranhão',
+  'Mato Grosso',
+  'Mato Grosso do Sul',
+  'Minas Gerais',
+  'Pará',
+  'Paraíba',
+  'Paraná',
+  'Pernambuco',
+  'Piauí',
   'Rio de Janeiro',
-  'Brasília',
-  'Salvador',
-  'Recife',
-  'Fortaleza',
-  'Belo Horizonte',
-  'Curitiba',
+  'Rio Grande do Norte',
+  'Rio Grande do Sul',
+  'Rondônia',
+  'Roraima',
+  'Santa Catarina',
+  'São Paulo',
+  'Sergipe',
+  'Tocantins',
 ]
 
 const URGENCY_LEVELS = [
@@ -163,17 +182,8 @@ export function UserPreferencesForm() {
     setPreferences((prev) => ({
       ...prev,
       interests: prev.interests.includes(category)
-        ? prev.interests.filter((c) => c !== category)
+        ? prev.interests.filter((i) => i !== category)
         : [...prev.interests, category],
-    }))
-  }
-
-  function toggleLocation(location: string) {
-    setPreferences((prev) => ({
-      ...prev,
-      preferred_locations: prev.preferred_locations.includes(location)
-        ? prev.preferred_locations.filter((l) => l !== location)
-        : [...prev.preferred_locations, location],
     }))
   }
 
@@ -258,20 +268,58 @@ export function UserPreferencesForm() {
           Localizações Preferidas
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          Selecione as regiões onde deseja receber oportunidades
+          Selecione os estados onde deseja receber oportunidades
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {LOCATIONS.map((location) => (
-            <label key={location} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={preferences.preferred_locations.includes(location)}
-                onChange={() => toggleLocation(location)}
-                className="w-4 h-4 rounded border-gray-300 text-yellow-500"
-              />
-              <span className="text-gray-700">{location}</span>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estados
             </label>
-          ))}
+            <select
+              multiple
+              value={preferences.preferred_locations.filter(l => l !== 'Internacional')}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions, option => option.value)
+                const hasInternacional = preferences.preferred_locations.includes('Internacional')
+                setPreferences((prev) => ({
+                  ...prev,
+                  preferred_locations: hasInternacional ? [...selected, 'Internacional'] : selected,
+                }))
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            >
+              {STATES.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-2">
+              💡 Use Ctrl+Click (ou Cmd+Click) para selecionar múltiplos estados
+            </p>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.preferred_locations.includes('Internacional')}
+              onChange={() => {
+                if (preferences.preferred_locations.includes('Internacional')) {
+                  setPreferences((prev) => ({
+                    ...prev,
+                    preferred_locations: prev.preferred_locations.filter(l => l !== 'Internacional'),
+                  }))
+                } else {
+                  setPreferences((prev) => ({
+                    ...prev,
+                    preferred_locations: [...prev.preferred_locations, 'Internacional'],
+                  }))
+                }
+              }}
+              className="w-4 h-4 rounded border-gray-300 text-yellow-500"
+            />
+            <span className="text-gray-700">🌍 Internacional</span>
+          </label>
         </div>
       </Card>
 
