@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { addWatermarkWithOpacity } from '@/lib/watermark'
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +51,14 @@ export async function POST(request: NextRequest) {
     const uploadedPaths: string[] = []
 
     for (const file of files) {
+      // Converter File para Buffer
+      const arrayBuffer = await file.arrayBuffer()
+      const imageBuffer = Buffer.from(arrayBuffer)
+
+      // Adicionar watermark à imagem
+      console.log(`[watermark] Adicionando marca d'água à imagem: ${file.name}`)
+      const watermarkedBuffer = await addWatermarkWithOpacity(imageBuffer, file.name, 85)
+
       // Sanitize filename to avoid issues with special characters
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
       const filename = `${Date.now()}-${sanitizedName}`
@@ -57,7 +66,11 @@ export async function POST(request: NextRequest) {
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('product-images')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .upload(path, watermarkedBuffer, { 
+          cacheControl: '3600', 
+          upsert: false,
+          contentType: file.type || 'image/jpeg'
+        })
 
       if (uploadError) {
         console.error('Server upload error', { uploadError, path })
@@ -67,6 +80,7 @@ export async function POST(request: NextRequest) {
       // Get public URL
       const { data: publicData } = supabase.storage.from('product-images').getPublicUrl(path)
       uploadedPaths.push(publicData.publicUrl)
+      console.log(`[watermark] Imagem com marca d'água salva em: ${path}`)
     }
 
     return NextResponse.json({ urls: uploadedPaths })

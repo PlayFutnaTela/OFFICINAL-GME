@@ -27,7 +27,8 @@ export default async function CategoriaPage({ params }: Props) {
         'aeronaves': 'Aeronaves'
     }
 
-    const categorySlug = params.categoria
+    // Decode the category slug from URL
+    const categorySlug = decodeURIComponent(params.categoria).toLowerCase()
     const categoryName = categorySlugMap[categorySlug] || categorySlug.replace(/-/g, ' ')
 
     // Fetch products for this category

@@ -1,12 +1,475 @@
-# Análise Detalhada da Plataforma de Intermediação de Negócios (GEREZIM)
+# Análise Estratégica e Técnica da Plataforma GEREZIM Private Club
 
-## Visão Geral do Projeto
+## SEÇÃO 1: POSICIONAMENTO ESTRATÉGICO
 
-O sistema GEREZIM é um MVP (Produto Mínimo Viável) de uma plataforma completa para gestão de oportunidades de negócios, **clientes**, pipeline de vendas, sistema de convites privados, assistente concierge e solicitações de produtos/serviços. O sistema permite o gerenciamento de oportunidades de negócios em diferentes categorias (carros, imóveis, empresas e itens premium), gestão de clientes (leads), visualização do pipeline de vendas em formato Kanban, sistema de convites privados exclusivos com aprovação administrativa e funcionalidades de concierge para suporte personalizado.
+### 1.1. Manifesto do Produto GEREZIM
 
-## Arquitetura e Tecnologias Utilizadas
+#### O que é GEREZIM?
+GEREZIM é um **clube privado digital exclusivo** para intermediação de oportunidades de negócios de alto valor, onde membros selecionados acessam um ecossistema curado de deals, investimentos e negociações que não estão disponíveis ao mercado comum.
 
-### Frontend
+#### O que NÃO é GEREZIM?
+- Marketplace aberto (não é OLX, Imobiliário.com ou Amazon)
+- Plataforma de crowdfunding
+- Rede social de negócios (não é LinkedIn)
+- Plataforma de e-commerce
+- Sistema genérico de CRM
+- Serviço de consultoria
+
+#### Qual problema resolve?
+**Para investidores, empresários e tomadores de decisão:**
+- Dificuldade de acessar oportunidades exclusivas e vetadas (off-market)
+- Falta de intermediários confiáveis e curados
+- Impossibilidade de terceirizar análise de viabilidade de deals
+- Desperdício de tempo em filtragem manual de oportunidades
+- Incerteza sobre reputação e confiabilidade de contatos
+
+**Para intermediadores e consultores:**
+- Necessidade de plataforma profissional para gerenciar clientes
+- Dificuldade em rastrear deals e fechar negociações
+- Falta de sistema para controlar acesso exclusivo a oportunidades
+- Perda de oportunidades por desorganização
+
+#### Para quem é?
+**Membros Premium:**
+1. **Investidores Anjos / Family Offices** - buscam deals pré-filtrados de alto padrão
+2. **Empresários** - procuram aquisições, expansão e parcerias estratégicas
+3. **Construtoras / Incorporadoras** - buscam terrenos e projetos exclusivos
+4. **Consultores de Negócios** - usam como ferramenta de gestão
+5. **Family Offices** - buscam gestão patrimonial e investimentos
+
+**Intermediadores:**
+- Corretores high-end
+- Consultores de negócios
+- Agentes imobiliários premium
+- Consultores de investimento
+- M&A Advisors
+
+#### Como gera valor?
+1. **Para Membros:**
+   - Acesso a deals exclusivos 80% mais cedo que o mercado
+   - Triagem profissional por intermediadores de confiança
+   - Validação de viabilidade via módulo de análise
+   - Contatos pré-verificados e confiáveis
+   - Histórico de comportamento para recomendações personalizadas
+
+2. **Para Intermediadores:**
+   - Gestão centralizada de clientes e oportunidades
+   - Sistema de aprovação para controlar acesso
+   - Auditoria completa de atividades
+   - Integração com concierge para suporte premium
+   - Comissões transparentes e rastreáveis
+
+3. **Para a Plataforma:**
+   - Rede de efeito (mais membros = mais oportunidades = mais valor)
+   - Dados de comportamento para IA de matching
+   - Múltiplas fontes de receita (assinatura, taxa de sucesso, serviços premium)
+
+---
+
+### 1.2. Estrutura de Planos / Camadas de Acesso
+
+GEREZIM opera em três camadas de membros exclusivos, cada uma com direitos e privilégios específicos:
+
+#### **NÍVEL SILVER** (Membro Iniciante)
+- **Custo:** R$ 4.900/ano ou R$ 490/mês
+- **Uso:** Explorador de oportunidades, primeiro contato
+- **Acessos:**
+  - ✓ Visualização de 60% das oportunidades públicas
+  - ✓ Até 5 pedidos especiais por mês
+  - ✓ Acesso ao concierge com limite de 2h/mês
+  - ✓ Histórico básico (últimos 90 dias)
+  - ✓ 1 relatório de valuation express/mês
+  - ✗ Acesso a deals off-market
+  - ✗ Análise prioritária
+  - ✗ Matching automático
+
+#### **NÍVEL GOLD** (Membro Ativo)
+- **Custo:** R$ 14.900/ano ou R$ 1.490/mês
+- **Uso:** Negociador ativo, portfolio acompanhador
+- **Acessos:**
+  - ✓ Visualização de 100% das oportunidades públicas
+  - ✓ Acesso a 30% das oportunidades off-market (deals privados)
+  - ✓ Até 20 pedidos especiais por mês
+  - ✓ Acesso prioritário ao concierge (8h/mês)
+  - ✓ Histórico completo (últimos 12 meses)
+  - ✓ Unlimited relatórios de valuation express
+  - ✓ Matching inteligente 2x/semana
+  - ✓ Notificações de "match perfeito"
+  - ✗ Deals 100% privados (Black Book)
+  - ✗ Acesso a investment club exclusivo
+  - ✗ Concierge dedicado
+
+#### **NÍVEL BLACK** (Membro Institucional)
+- **Custo:** R$ 49.900/ano ou R$ 4.990/mês (+ taxa de sucesso variável)
+- **Uso:** Grandes alocadores, investidores institucionais, multi-deal
+- **Acessos:**
+  - ✓ Visualização de 100% de TODAS as oportunidades
+  - ✓ Acesso total ao Black Book (deals 100% privados + confidenciais)
+  - ✓ Unlimited pedidos especiais
+  - ✓ Concierge dedicado 24h (gestor de relacionamento)
+  - ✓ Histórico completo com analytics avançadas
+  - ✓ Valuation completa (não apenas express)
+  - ✓ Matching inteligente contínuo (daily)
+  - ✓ Deal origination customizado (GEREZIM procura deals para você)
+  - ✓ Investment club exclusivo (networking premium)
+  - ✓ Due diligence facilitada
+  - ✓ Prioridade máxima em processamento
+  - ✓ Consultoria estratégica inclusa
+
+#### Benefícios Transversais Todos os Níveis:
+- Dashboard personalizado por tipo de usuário
+- Notificações em tempo real
+- Mobile app completo
+- Suporte por email 24h
+- Acesso ao blog e research
+- Comunidade restrita de membros
+
+---
+
+## SEÇÃO 2: VISÃO TÉCNICA INTEGRADA
+
+O sistema GEREZIM é um MVP robusto de uma plataforma de intermediação de negócios com suporte a múltiplos níveis de acesso, permitindo o gerenciamento de oportunidades exclusivas, clientes, pipeline de vendas, sistema de convites privados, assistente concierge e solicitações de produtos/serviços curados.
+
+---
+
+## SEÇÃO 3: MAPA DE FLUXOS DO USUÁRIO
+
+### 3.1. Fluxo de Onboarding com Convite
+
+```
+Visitante Público
+    ↓
+Preenche formulário de solicitação (nome, email, WhatsApp, interesse)
+    ↓
+Insere código de convite (validação em tempo real)
+    ↓
+Solicita acesso → Email de confirmação enviado
+    ↓
+[PAUSA] Aguarda aprovação de administrador
+    ↓
+Admin revisa perfil → Aprovar/Rejeitar
+    ↓
+SE APROVADO:
+  - Conta criada automaticamente
+  - Email com credenciais temporárias
+  - Acesso imediato com nível Silver (padrão)
+  - Onboarding em 3 etapas (produto, interface, recursos)
+    ↓
+SE REJEITADO:
+  - Email com motivo da rejeição
+  - Sugestão de tentar novamente em X dias
+```
+
+**Tabelas Envolvidas:**
+- `pending_members` (candidatos em revisão)
+- `profiles` (perfil criado após aprovação)
+- `invites` (rastreio de código usado)
+- `audit_logs` (registro de cada etapa)
+
+---
+
+### 3.2. Fluxo de Upgrade de Nível
+
+```
+Membro Silver (atual)
+    ↓
+Acessa "Upgrade" no painel
+    ↓
+Vê opções: Gold (R$ 1.490/mês) ou Black (R$ 4.990/mês)
+    ↓
+Clica em "Solicitar Upgrade"
+    ↓
+Preenche justificativa (opcional)
+    ↓
+[CASO SILVER→GOLD]
+  - Aprovação automática em até 2h
+  - Email de boas-vindas
+  - Acesso ativado imediatamente
+    ↓
+[CASO SILVER/GOLD→BLACK ou GOLD→BLACK]
+  - Vai para fila de aprovação manual
+  - Admin verifica histórico, atividade, reputação
+  - Email com decisão e data de ativação
+```
+
+**Tabelas Envolvidas:**
+- `profiles` (update de `membership_tier`)
+- `subscription_requests` (novo: rastreio de solicitações)
+- `audit_logs` (registro de upgrades)
+
+---
+
+### 3.3. Fluxo de Acesso a Oportunidades por Nível
+
+```
+MEMBRO SILVER:
+  Acessa /oportunidades
+  ↓
+  Vê filtro por categoria
+  ↓
+  Visualiza 60% das oportunidades públicas
+  ↓
+  Clica em uma → Vê detalhes completos
+  ↓
+  Botão "Solicitar Apresentação" → vai para Concierge
+
+MEMBRO GOLD:
+  Acessa /oportunidades
+  ↓
+  Vê filtro por: categoria, faixa de valor, localização, confidencialidade
+  ↓
+  Visualiza 100% das oportunidades públicas + 30% do Black Book
+  ↓
+  Deals que você "match" aparecem com "🔥 Perfect Match" (via IA)
+  ↓
+  Notificações diárias de novos matches
+
+MEMBRO BLACK:
+  Acessa /black-book (seção privada 100%)
+  ↓
+  Vê TODAS as oportunidades (públicas + privadas + confidenciais)
+  ↓
+  Filtros avançados: volume de deal, ROI esperado, tipo de investidor etc
+  ↓
+  Contato direto com intermediador
+  ↓
+  Atribui gestor de relacionamento (concierge dedicado)
+  ↓
+  Recebe deal origination customizado
+```
+
+**Tabelas Envolvidas:**
+- `products` / `opportunities` (com campo `confidentiality_level`: public, gold, black)
+- `user_matches` (novo: rastreio de matches automáticos via IA)
+- `view_history` (novo: rastreio do que usuário visualizou)
+
+---
+
+### 3.4. Fluxo de Solicitação de Pedido Especial (Concierge)
+
+```
+Membro (qualquer nível)
+    ↓
+Acessa /solicitar-pedido
+    ↓
+Preenche:
+  - Tipo de oportunidade desejada (ex: "Imóvel em SP com 500m² acima de 5M")
+  - Prazo
+  - Orçamento aproximado
+  - Detalhes adicionais
+    ↓
+Submete → Criação de ticket no sistema
+    ↓
+[FILA DE PROCESSAMENTO]
+  Black: Prioridade máxima (0-24h de retorno)
+  Gold: Prioridade alta (0-48h)
+  Silver: Prioridade normal (3-5 dias)
+    ↓
+Concierge pesquisa na rede + Black Book
+    ↓
+Envia sugestões (até 5 por padrão)
+    ↓
+Membro feedback → Refina busca
+    ↓
+Quando encontrar algo: "Deal Match" → Apresentação formal
+    ↓
+Intermediador faz contato direto
+```
+
+**Tabelas Envolvidas:**
+- `pedido_requests` (com campo `priority_level`)
+- `request_comments` (novo: conversa sobre o pedido)
+- `request_matches` (novo: deals sugeridos para cada pedido)
+
+---
+
+### 3.5. Fluxo de Conciergeria Dedicada (Black)
+
+```
+Membro Black
+    ↓
+Acessa /concierge
+    ↓
+Vê gestor atribuído (nome, telefone, email)
+    ↓
+Opções:
+  1. Chat com gestor (mensagens em tempo real)
+  2. Agendar call (integração com calendário)
+  3. Enviar documentos (upload seguro)
+  4. Ver histórico de atendimentos
+    ↓
+Gestor recebe notificação → Prioridade máxima
+    ↓
+Atendimento: consultoria, análise de viabilidade, negotiation support
+    ↓
+Caso gere negócio: Registro de conclusão + feedback
+```
+
+**Tabelas Envolvidas:**
+- `concierge_conversations` (com campo `assigned_concierge`)
+- `concierge_chats` (novo: mensagens em tempo real)
+- `concierge_calls` (novo: histórico de chamadas)
+- `request_matches` (atualizado: resultado do atendimento)
+
+---
+
+### 3.6. Fluxo de Criação de Oportunidade por Intermediador
+
+```
+Intermediador (autenticado)
+    ↓
+Acessa /dashboard/oportunidades/nova
+    ↓
+Preenche:
+  - Título, categoria, valor, localização
+  - Descrição detalhada
+  - Fotos/documentos
+  - Nível de confidencialidade (público / gold / black)
+  - Interessados específicos (opcional)
+    ↓
+Salva como RASCUNHO
+    ↓
+Pré-visualização com dados fictícios
+    ↓
+Publica (de imediato ou agenda para data específica)
+    ↓
+[SE PUBLIC]
+  - Visível para todos Ouro+
+  - Notificação automática para matches
+  - Contador de visualizações
+    ↓
+[SE GOLD]
+  - Visível somente para Ouro
+  - Notificação exclusiva para Ouro que combinam
+    ↓
+[SE BLACK]
+  - Visível somente para Black
+  - Notificação exclusiva com "Deal Origination"
+  - Contato direto (sem intermediários adicionais)
+```
+
+**Tabelas Envolvidas:**
+- `products` / `opportunities` (com status draft/published)
+- `product_views` (novo: análise de quantas vezes foi visualizado)
+- `product_notifications` (novo: rastreio de quem foi notificado)
+
+---
+
+### 3.7. Fluxo de Análise de Viabilidade (Valuation Express)
+
+```
+Membro (Gold+ autorizado a solicitar)
+    ↓
+Acessa /valuation-express
+    ↓
+Seleciona tipo: Empresa / Imóvel / Carro de Luxo
+    ↓
+Preenche dados básicos (localização, tamanho, receita, etc)
+    ↓
+Faz upload de documentos (opcional)
+    ↓
+Submete solicitação
+    ↓
+[FILA ANÁLISE]
+  Black: 0-4h
+  Gold: 0-24h
+    ↓
+IA processa (preliminary assessment)
+    ↓
+Analista revisa + adiciona insights
+    ↓
+Gera relatório em PDF (executive summary)
+    ↓
+Envia email com resultado + contato de especialista
+    ↓
+Membro pode:
+  - Solicitar análise mais profunda (upgrade)
+  - Marcar como "interessado" (salva histórico)
+  - Compartilhar com sócios (link seguro)
+```
+
+**Tabelas Envolvidas:**
+- `valuation_requests` (novo: rastreio de solicitações)
+- `valuation_reports` (novo: armazenamento de relatórios)
+- `valuation_analysis` (novo: dados técnicos da análise)
+
+---
+
+### 3.8. Fluxo de Compartilhamento e Rastreio de Conversão
+
+```
+Membro
+    ↓
+Vê oportunidade interessante → Clica "Compartilhar"
+    ↓
+Opções:
+  1. WhatsApp (gera link único rastreável)
+  2. Email (mesmo)
+  3. Copiar link (mesmo)
+  4. Enviar para contato no GEREZIM
+    ↓
+Link único criado + QR Code
+    ↓
+Intermediador vê em tempo real:
+  - Quem compartilhou
+  - Com quem foi compartilhado (se contato GEREZIM)
+  - Quantas vezes o link foi aberto
+  - Se resultou em contato/interesse
+    ↓
+Rastreio na timeline:
+  - "João compartilhou com Maria (aberto 3x)"
+  - "Maria clicou para contato" 
+  - "Negociação iniciada"
+    ↓
+Dashboard de conversão:
+  - Taxa de conversão por oportunidade
+  - Intermediadores mais eficientes
+  - Padrões de comportamento
+```
+
+**Tabelas Envolvidas:**
+- `links` (atualizado: com tracking de cliques e compartilhamentos)
+- `link_clicks` (novo: rastreio detalhado)
+- `conversion_funnel` (novo: análise de conversão)
+
+---
+
+### 3.9. Fluxo de Histórico e DNA de Compra
+
+```
+Membro Black/Gold (após 30 dias na plataforma)
+    ↓
+Acessa /my-profile/buying-dna
+    ↓
+Visualiza:
+  1. Categorias mais visualizadas (% do tempo)
+  2. Faixa de valor preferida (gráfico)
+  3. Localidades de interesse (mapa)
+  4. Tipos de deal que geram cliques (listagem)
+  5. Taxa de conversão pessoal vs média
+  6. Oportunidades salvas / em negociação / fechadas
+    ↓
+Sistema oferece:
+  - "Recomendações baseadas no seu perfil"
+  - "Você tem 3 deals similares a este"
+  - "Novo deal em SP te aguarda"
+    ↓
+IA usa dados para:
+  - Melhorar matching automático
+  - Sugerir upgrades de nível
+  - Personalizar notificações
+  - Criar relatórios de insight
+```
+
+**Tabelas Envolvidas:**
+- `view_history` (novo: rastreio de visualizações)
+- `click_history` (novo: rastreio de cliques)
+- `user_preferences` (novo: preferências inferidas)
+- `recommendations` (novo: sugestões geradas por IA)
+
+---
+
+## SEÇÃO 4: ESTRUTURA TÉCNICA
 - **Framework**: Next.js 14 (App Router)
 - **Linguagem**: TypeScript
 - **UI Framework**: Tailwind CSS
@@ -135,9 +598,659 @@ O projeto está dividido em duas partes principais:
  - **Políticas de tarefas** — Permissão explícita para associação de tarefas a produtos com `allow_tasks_for_products.sql`.
  - **Diagnóstico e verificação** — Scripts auxiliares para auditar RLS e logs (`diagnose_logs.sql`, `verify_logs_and_tasks.sql`).
 
-## Banco de Dados
+---
 
-### Tabelas Principais
+## SEÇÃO 5: DESIGN SYSTEM FORMALIZADO
+
+### 5.1. Paleta de Cores (Tokens)
+
+```css
+/* PRIMARY - Ouro Premium */
+--color-gold-50: #FEF9F3
+--color-gold-100: #FCF1E3
+--color-gold-200: #F9DFC0
+--color-gold-300: #F5CB9C
+--color-gold-400: #F1B878
+--color-gold-500: #C59A00  /* Primary Brand */
+--color-gold-600: #9D7A00
+--color-gold-700: #755A00
+--color-gold-800: #4D3A00
+
+/* SECONDARY - Neutro Elegante */
+--color-slate-50: #F8FAFC
+--color-slate-100: #F1F5F9
+--color-slate-200: #E2E8F0
+--color-slate-300: #CBD5E1
+--color-slate-400: #94A3B8
+--color-slate-500: #64748B
+--color-slate-600: #475569
+--color-slate-700: #334155
+--color-slate-800: #1E293B
+--color-slate-900: #0F172A
+
+/* ACCENT - Status e Alertas */
+--color-success: #10B981 (Verde)
+--color-warning: #F59E0B (Laranja)
+--color-error: #EF4444 (Vermelho)
+--color-info: #3B82F6 (Azul)
+
+/* SEMANTIC - Membros */
+--color-silver: #C0C0C0 (Cinza metalizado)
+--color-gold: #FFD700 (Ouro)
+--color-black: #1A1A1A (Preto premium)
+```
+
+### 5.2. Tipografia
+
+```css
+/* Headings */
+h1: Poppins Bold 48px / 120%
+h2: Poppins Bold 36px / 120%
+h3: Poppins SemiBold 28px / 120%
+h4: Poppins SemiBold 20px / 120%
+h5: Poppins Medium 16px / 120%
+h6: Poppins Medium 14px / 120%
+
+/* Body */
+Body Large: Inter Regular 16px / 150%
+Body Regular: Inter Regular 14px / 150%
+Body Small: Inter Regular 12px / 150%
+
+/* Labels */
+Label Large: Inter Medium 14px / 150%
+Label Regular: Inter Medium 12px / 150%
+
+/* Monospace (para dados técnicos) */
+Code: JetBrains Mono 12px / 150%
+```
+
+### 5.3. Espaçamento (8px Grid)
+
+```
+--space-0: 0px
+--space-1: 4px (ícones pequenos)
+--space-2: 8px (default padding interno)
+--space-3: 12px
+--space-4: 16px (padding padrão)
+--space-6: 24px (margin entre seções)
+--space-8: 32px (margin entre componentes maiores)
+--space-12: 48px (margin entre grandes áreas)
+--space-16: 64px (margin de seções principais)
+--space-20: 80px (espaçamento de página)
+```
+
+### 5.4. Layout Padrão
+
+```
+Desktop: 1920px (viewport máxima)
+Tablet: 1024px
+Mobile: 375px (mínimo)
+
+Container max-width: 1440px
+Gutter (lateral): 2 x --space-6 (24px)
+Coluna: 12 colunas (Tailwind grid)
+
+Breakpoints:
+sm: 640px
+md: 768px
+lg: 1024px
+xl: 1280px
+2xl: 1536px
+```
+
+### 5.5. Componentes Padronizados
+
+#### Card Premium
+```tsx
+<Card className="bg-white dark:bg-slate-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-gold-200 dark:border-gold-700">
+  <CardHeader className="border-b border-gold-100 dark:border-gold-800">
+    <CardTitle className="text-gold-900 dark:text-gold-100">Título</CardTitle>
+  </CardHeader>
+  <CardContent className="pt-6">
+    {/* conteúdo */}
+  </CardContent>
+</Card>
+```
+
+#### Badge por Nível
+```tsx
+/* Silver */
+<Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+  Silver
+</Badge>
+
+/* Gold */
+<Badge className="bg-gold-100 text-gold-900 border-gold-300">
+  Gold
+</Badge>
+
+/* Black */
+<Badge className="bg-slate-900 text-white border-slate-800">
+  Black
+</Badge>
+```
+
+#### Button Primário
+```tsx
+<Button className="bg-gold-500 hover:bg-gold-600 text-white font-medium px-6 py-3 rounded-lg transition-colors">
+  Ação Primária
+</Button>
+```
+
+#### Input Premium
+```tsx
+<Input 
+  className="border-gold-300 focus:border-gold-500 focus:ring-gold-500 rounded-lg"
+  placeholder="Digite aqui..."
+/>
+```
+
+### 5.6. Dark Mode
+- Implementado via classe `dark` no `html`
+- Suporte completo a todo o design system
+- Transição suave entre temas (300ms)
+- Preferência do usuário salva em localStorage
+
+---
+
+## SEÇÃO 6: DASHBOARDS DIFERENCIADOS POR TIPO DE USUÁRIO
+
+### 6.1. Dashboard do Membro Silver
+
+**Layout:**
+- Seção 1: Boas-vindas + Status de onboarding
+- Seção 2: Oportunidades recomendadas (últimas 3)
+- Seção 3: Minhas solicitações (pedidos abertos)
+- Seção 4: Como funciona GEREZIM (guia)
+- Seção 5: Upgradar para Gold (CTA destacado)
+
+**Gráficos:**
+- Nenhum gráfico técnico (não aplicável em Silver)
+- Cards informativos simples
+- Timeline de últimas atividades (leitura)
+
+**Funcionalidades Disponíveis:**
+- Visualizar 60% das oportunidades
+- Fazer até 5 pedidos/mês
+- Acessar concierge (2h/mês)
+- Ver perfil pessoal
+
+### 6.2. Dashboard do Membro Gold
+
+**Layout:**
+- Seção 1: Estatísticas pessoais (visualizações, matches, conversões)
+- Seção 2: Meus Matches (deals que te interessam)
+- Seção 3: Pedidos Abertos (com status)
+- Seção 4: Oportunidades Salvas (favoritos)
+- Seção 5: Histórico (últimos 30 dias)
+
+**Gráficos:**
+- 📊 Categorias mais visualizadas (donut chart)
+- 📈 Faixa de valor preferida (histogram)
+- 🗺️ Localidades de interesse (geo chart)
+- 📉 Taxa de conversão pessoal vs média
+- ⏱️ Timeline de atividades
+
+**Funcionalidades Disponíveis:**
+- Visualizar 100% das oportunidades públicas
+- Acesso a 30% do Black Book
+- Matching inteligente 2x/semana
+- Até 20 pedidos/mês
+- Concierge 8h/mês
+- Análise de viabilidade (unlimited)
+- Relatórios de DNA de compra
+
+### 6.3. Dashboard do Membro Black
+
+**Layout:**
+- Seção 1: Visão Geral Black (headline KPIs)
+- Seção 2: Black Book (todas as oportunidades privadas)
+- Seção 3: Gestor de Relacionamento (contato dedicado)
+- Seção 4: Pedidos Customizados (deal origination)
+- Seção 5: Due Diligence (arquivos e análises)
+
+**Gráficos:**
+- 📊 Análise detalhada de portfolio (segmentação)
+- 📈 ROI esperado vs realizado (scatter plot)
+- 🎯 Pipeline de negociação (Kanban visual)
+- 💰 Distribuição de capital (treemap)
+- ⏰ Timeline de deals (Gantt chart)
+- 🔐 Deals fechados (com confidencialidade)
+
+**Funcionalidades Disponíveis:**
+- Acesso 100% ao Black Book
+- Deal origination personalizado
+- Concierge dedicado 24h
+- Due diligence facilitada
+- Investment club
+- Consultoria estratégica
+- Unlimited pedidos
+- Prioridade máxima
+
+### 6.4. Dashboard Administrativo (Gerenciador/Intermediador)
+
+**Layout:**
+- Seção 1: KPIs gerenciais (total de membros, deals, comissões)
+- Seção 2: Pipeline de aprovações (membros pendentes)
+- Seção 3: Análise de conversão (por deal, por intermediador)
+- Seção 4: Auditoria (logs de ações)
+- Seção 5: Gestão de concierge (workload)
+
+**Gráficos:**
+- 📊 Membros por nível (distribuição)
+- 📈 Crescimento de membros (timeline)
+- 💰 Comissões estimadas (por deal)
+- 🎯 Taxa de conversão por deal
+- ⏱️ Tempo médio para fechamento
+- 👥 Workload de concierge (horas/dia)
+- 🔐 Auditoria de acessos (quem viu o quê)
+
+**Funcionalidades Disponíveis:**
+- Criar/editar/deletar oportunidades
+- Gerenciar membros e aprovações
+- Definir níveis de confidencialidade
+- Ver análises completas
+- Gerenciar concierge
+- Auditoria total
+- Exportar relatórios
+- Integração com webhooks
+
+---
+
+## SEÇÃO 7: MELHORIAS DE BACKEND
+
+### 7.1. Separação entre Dados Públicos e Exclusivos
+
+**Nova Tabela: `private_opportunities`**
+```sql
+CREATE TABLE private_opportunities (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  value NUMERIC,
+  confidentiality_level TEXT ('gold', 'black'), -- Define acesso
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  description TEXT,
+  location TEXT,
+  images TEXT[],
+  status TEXT DEFAULT 'published',
+  -- Campos adicionais específicos de deals privados
+  deal_type TEXT ('acquisition', 'investment', 'partnership'),
+  roi_expected NUMERIC,
+  timeline TEXT
+);
+
+-- RLS Policy: Apenas usuários com membership_tier >= nível do deal podem ver
+```
+
+**Nova Tabela: `private_contacts`**
+```sql
+CREATE TABLE private_contacts (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  name TEXT NOT NULL,
+  contact_info JSONB, -- email, phone, whatsapp (encrypted)
+  relationship TEXT, -- 'investor', 'buyer', 'partner', 'strategic'
+  net_worth NUMERIC, -- confidencial
+  interests TEXT[],
+  confidentiality_level TEXT ('internal', 'team', 'admin'),
+  created_at TIMESTAMP DEFAULT NOW(),
+  -- Auditoria
+  last_contacted TIMESTAMP,
+  interaction_count INT DEFAULT 0
+);
+
+-- RLS Policy: Somente admin e intermediador atribuído podem ver
+```
+
+### 7.2. Tabelas para Rastreamento de Comportamento
+
+**Nova Tabela: `user_activities`**
+```sql
+CREATE TABLE user_activities (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  activity_type TEXT ('view', 'click', 'save', 'share', 'contact', 'deal_closed'),
+  entity_type TEXT ('opportunity', 'product', 'deal'),
+  entity_id UUID,
+  metadata JSONB, -- detalhes adicionais
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Índices para queries rápidas
+CREATE INDEX idx_user_activities_user_id_type ON user_activities(user_id, activity_type);
+CREATE INDEX idx_user_activities_entity ON user_activities(entity_type, entity_id);
+```
+
+**Nova Tabela: `user_preferences`**
+```sql
+CREATE TABLE user_preferences (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  -- Inferred from behavior
+  preferred_categories TEXT[],
+  preferred_value_range JSONB, -- {min, max}
+  preferred_locations TEXT[],
+  preferred_deal_types TEXT[],
+  -- Explícito
+  notification_frequency TEXT, -- 'daily', 'weekly', 'monthly'
+  sharing_permissions JSONB,
+  -- Timestamps
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 7.3. Tabelas para IA e Recomendações
+
+**Nova Tabela: `recommendations`**
+```sql
+CREATE TABLE recommendations (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  opportunity_id UUID REFERENCES products(id),
+  match_score NUMERIC(3,2), -- 0 a 1.00
+  match_reason TEXT, -- "Categoria que você mais visualiza", etc
+  created_at TIMESTAMP DEFAULT NOW(),
+  interacted_at TIMESTAMP, -- quando o usuário viu a recomendação
+  resulted_in_contact BOOLEAN DEFAULT FALSE
+);
+
+-- Índices
+CREATE INDEX idx_recommendations_user_id ON recommendations(user_id, created_at DESC);
+```
+
+**Nova Tabela: `valuation_requests`**
+```sql
+CREATE TABLE valuation_requests (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  deal_type TEXT ('company', 'property', 'luxury_car'),
+  basic_info JSONB, -- dados básicos (localização, tamanho, receita)
+  documents TEXT[],  -- URLs de uploads
+  status TEXT ('pending', 'analyzing', 'completed', 'failed'),
+  priority TEXT ('normal', 'urgent'), -- depende do nível do membro
+  assigned_analyst UUID REFERENCES profiles(id),
+  result_document TEXT, -- URL do PDF gerado
+  created_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP
+);
+```
+
+### 7.4. Consolidação de Migrations
+
+**Estrutura Proposta:**
+
+```
+backend/migrations/
+├── 001_base_schema.sql (contém: users, profiles, opportunities, contacts, etc)
+├── 002_products_and_categories.sql
+├── 003_rls_and_security.sql
+├── 004_tasks_and_timeline.sql
+├── 005_invites_system.sql
+├── 006_concierge_system.sql
+├── 007_private_opportunities.sql (novo)
+├── 008_user_behavior_tracking.sql (novo)
+├── 009_ai_recommendations.sql (novo)
+├── 010_valuation_module.sql (novo)
+└── 011_fixes_and_optimizations.sql
+
+# Em produção:
+-- Antes (multiplos arquivos resolvendo o mesmo problema)
+-- Depois (migrations sequenciais e claras)
+```
+
+### 7.5. Melhorias de Performance
+
+**Índices Críticos Recomendados:**
+
+```sql
+-- Oportunidades
+CREATE INDEX idx_products_status_category ON products(status, category);
+CREATE INDEX idx_products_created_at_desc ON products(created_at DESC);
+
+-- Búsca full-text
+ALTER TABLE products ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (
+  to_tsvector('portuguese', coalesce(title, '') || ' ' || coalesce(description, ''))
+) STORED;
+CREATE INDEX idx_products_search ON products USING gin(search_vector);
+
+-- Membership tiers para acesso
+CREATE INDEX idx_profiles_membership_tier ON profiles(membership_tier);
+
+-- Auditoria
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
+```
+
+---
+
+## SEÇÃO 8: INTELIGÊNCIA ARTIFICIAL E AUTOMAÇÃO
+
+### 8.1. IA Interna (GPT via Server Actions)
+
+**Módulo 1: Geração Automática de Descrição**
+```tsx
+/* Server Action: src/actions/ai/generate-description.ts */
+export async function generateOpportunityDescription(params: {
+  category: string,
+  basicInfo: string,
+  tone: 'formal' | 'casual' | 'premium'
+}): Promise<string> {
+  // Chama OpenAI API com prompt estruturado
+  // Retorna descrição otimizada
+}
+
+// Uso no formulário:
+<Button onClick={() => generateOpportunityDescription({...})}>
+  ✨ Gerar descrição com IA
+</Button>
+```
+
+**Módulo 2: Avaliação Automática de Risco**
+```tsx
+export async function assessDealRisk(opportunityId: UUID): Promise<{
+  riskScore: number,  // 0-100
+  warnings: string[],
+  recommendations: string[]
+}> {
+  // Analisa dados da oportunidade
+  // Compara com histórico
+  // Retorna assessment
+}
+```
+
+**Módulo 3: Classificação Automática de Lead**
+```tsx
+export async function scoreLead(memberId: UUID): Promise<{
+  leadScore: number,    // 0-100
+  propensityToBuy: number,
+  avgDealSize: number,
+  preferredCategories: string[]
+}> {
+  // Analisa behavior do membro
+  // Calcula score de probabilidade
+  // Retorna insights
+}
+```
+
+**Módulo 4: IA Concierge para Pré-Atendimento**
+```tsx
+export async function aiConciergeResponse(message: string): Promise<string> {
+  // Membro Black pergunta algo
+  // IA tenta responder (FAQ, dados públicos)
+  // Se complexo: escalona para human
+}
+```
+
+### 8.2. Assistente Proativo
+
+**Notificações Inteligentes (Server-side job):**
+
+```tsx
+// Job rodando a cada 1h (Vercel Cron ou externa)
+export async function runProactiveAssistant() {
+  // Busca membros com:
+  // - Oportunidades salvas há 10+ dias sem ação
+  // - Matching score alto mas sem abertura do deal
+  // - Pedidos pendentes há 15+ dias
+  
+  // Envia notificação personalizada:
+  // "João, encontramos 3 deals que combinam com seu perfil"
+  // "Seu pedido de imóvel em SP está quase pronto!"
+}
+```
+
+---
+
+## SEÇÃO 9: ROADMAP PRIORIZADO
+
+### Fase 1 – Fechar o MVP Premium (Q1 2025)
+
+**Objetivo:** Estabelecer fundação de um clube exclusivo funcional
+
+- [ ] Design System formalizado (tokens, componentes, guias)
+- [ ] Dashboard diferenciado por tipo de usuário
+- [ ] Matching inteligente básico (regra + IA simples)
+- [ ] Área privada de oportunidades (Gold/Black Book)
+- [ ] Onboarding com convite + aprovação (refinado)
+- [ ] Mobile-first otimizado completo
+
+**Deliverables:**
+- Guia de componentes (Storybook ou Figma)
+- 3 dashboards funcionales
+- Algoritmo de matching testado
+- Política RLS para private_opportunities
+- App mobile com 95% de funcionalidades
+
+### Fase 2 – Clube Privado Premium (Q2 2025)
+
+**Objetivo:** Virar um clube verdadeiro com tiers e perks reais
+
+- [ ] Planos Silver/Gold/Black operacionais (billing integrado)
+- [ ] Concierge avançado com automação (chatbot + human handoff)
+- [ ] Deals off-market 100% privado
+- [ ] IA Concierge + sugestões automáticas
+- [ ] Valuation express integrado (com analistas)
+- [ ] Histórico de comportamento / DNA de compra
+- [ ] Rate limiting e proteção contra spam
+
+**Deliverables:**
+- Stripe/PagSeguro integrado
+- Chatbot com OpenAI
+- 50+ deals privados curados
+- Relatórios de valuation automáticos
+- Sistema de scoring de leads
+
+### Fase 3 – Marketplace High Ticket Inteligente (Q3-Q4 2025)
+
+**Objetivo:** Escalar para ser o maior clube de deals privados do Brasil
+
+- [ ] Automação completa de leads (scoring, matching, outreach)
+- [ ] Recomendações automáticas baseadas em comportamento
+- [ ] Notificações de "matching" em tempo real
+- [ ] Módulo de análise de viabilidade completo
+- [ ] Deal flow organizado por origem e intermediador
+- [ ] Analytics avançadas (para admins e membros Black)
+- [ ] Integrações com sistemas externos (Zapier, Make, etc)
+
+**Deliverables:**
+- 1000+ membros ativos
+- 100+ intermediadores
+- 500+ deals em pipeline
+- Dashboard com 20+ métricas
+- API pública para parceiros
+
+---
+
+## SEÇÃO 10: FUNCIONALIDADES AINDA FALTANDO
+
+### 10.1. Visualização Premium de Oportunidades
+
+**Nova seção: /oportunidades/[id]**
+
+```tsx
+// Hero section com fotos em carrossel
+<HeroCarousel images={opportunity.images} />
+
+// Info premium
+<div className="grid grid-cols-3 gap-6">
+  <PriceCard value={opportunity.value} currency="BRL" />
+  <LocationCard location={opportunity.location} mapUrl="..." />
+  <ConfidentialityBadge level={opportunity.confidentiality} />
+</div>
+
+// Timeline de valores (histórico)
+<PriceTimeline />
+
+// Documentos e análises
+<DocumentSection documents={opportunity.documents} />
+
+// Contato com intermediador
+<IntermediadorCard intermediador={opportunity.created_by} />
+
+// Botões de ação por nível
+{membership === 'black' && <Button>Solicitar DD</Button>}
+{membership === 'gold' && <Button>Solicitar Apresentação</Button>}
+{membership === 'silver' && <Button>Upgrade para Ouro</Button>}
+```
+
+### 10.2. Rate Limiting
+
+```tsx
+// Middleware: src/middleware.ts
+export async function middleware(request: NextRequest) {
+  const ip = request.ip || 'unknown'
+  const limit = 100 // requisições por hora
+  
+  const count = await redis.incr(`rate-limit:${ip}`)
+  if (count > limit) {
+    return new NextResponse('Too Many Requests', { status: 429 })
+  }
+  
+  return NextResponse.next()
+}
+```
+
+### 10.3. Mobile App
+
+- React Native ou Flutter
+- Funcionalidades core: listar oportunidades, salvar, compartilhar, chat
+- Push notifications
+- Biometria para segurança
+- Camera para scan de QR codes
+
+---
+
+## SEÇÃO 11: OBSERVAÇÕES TÉCNICAS FINAIS
+
+### Build & Deploy
+
+- `npm run build` deve passar sem warnings
+- TypeScript strict mode ativado
+- Tests rodam em CI/CD (implementar)
+- Vercel configurado com variáveis de ambiente
+- Supabase em produção com backups diários
+
+### Escalabilidade
+
+- Database: PostgreSQL escala bem até 1M+ registros (com índices corretos)
+- Cache com Redis para queries frequentes (recomendado em Q2)
+- CDN para assets estáticos (já configurado via Vercel)
+- Rate limiting e DDoS protection via Vercel ou Cloudflare
+
+### Segurança
+
+- RLS obrigatório em todas as tabelas
+- Tokens JWT com validade curta (15min)
+- Refresh tokens com maior validade (7 dias)
+- Audit logs de todas as ações administrativas
+- Criptografia de dados sensíveis (contatos, CPF, net worth)
+
+---
+
+**Documento revisado em:** 8 de dezembro de 2025
+**Status:** Pronto para implementação
 
 #### 1. `opportunities` (Oportunidades)
 - `id`: UUID (chave primária)
@@ -679,8 +1792,80 @@ O sistema utiliza Row Level Security (RLS) do Supabase para garantir que:
 - Componentes modulares permitem adição de novas funcionalidades
  - Scripts e migrations organizados agilizam evolução de schema e políticas
 
-## Conclusão
+---
 
-O sistema GEREZIM é um MVP bem estruturado e funcional que atende às necessidades avançadas de uma plataforma de intermediação de negócios. Com um dashboard completo e gráficos interativos, sistema de convites privados exclusivos, assistente concierge e funcionalidades de solicitação de pedidos, o sistema oferece insights valiosos sobre o desempenho de vendas e uma experiência premium para usuários selecionados. A arquitetura baseada em Next.js e Supabase fornece uma base sólida para extensões e melhorias futuras.
+## CONCLUSÃO: GEREZIM COMO CLUBE PRIVADO DE ELITE
 
- Com as melhorias recentes — tarefas com logging, timeline administrativa, sistema de convites com aprovação, concierge para suporte premium, RPC segura, RLS robusta, efeitos visuais e feedback instantâneo — o projeto está pronto para evoluir com confiabilidade e uma experiência de usuário superior em todos os aspectos do negócio.
+### Status Atual
+
+O GEREZIM possui uma **fundação técnica excelente** com:
+- ✅ Autenticação e RLS robustos
+- ✅ Sistema de convites com aprovação
+- ✅ Dashboard com 8 tipos de gráficos
+- ✅ Concierge básico operacional
+- ✅ Tarefas e timeline com auditoria
+- ✅ Stack moderno (Next.js, TypeScript, Tailwind, Supabase)
+- ✅ Deploy em Vercel com CI/CD
+
+### O que Falta Para Ser um Clube Verdadeiro
+
+Porém, o projeto ainda **não possui a identidade estratégica** de um clube exclusivo:
+
+1. **Sem diferenciação clara de tiers** → Não há "Silver", "Gold", "Black" com perks reais
+2. **Sem matching inteligente** → Recomendações são genéricas, não personalizadas
+3. **Sem módulo de valuation** → Não há análise de viabilidade de deals
+4. **Sem "Black Book"** → Não há oportunidades 100% privadas/confidenciais
+5. **Sem DNA de compra** → Não há histórico de comportamento do membro
+6. **Design system inconsistente** → Componentes funcionam mas não escaláveis visualmente
+7. **Sem IA** → Tudo manual, sem automação inteligente
+
+### Impacto da Implementação Sugerida
+
+Aplicando as melhorias propostas neste documento:
+
+**Curto Prazo (Q1 2025):**
+- Plataforma com identidade visual coerente (design system)
+- 3 dashboards diferenciados por nível (Silver/Gold/Black)
+- Algoritmo básico de matching (aumenta conversão em 30%)
+- Documentação clara para onboarding (reduz tempo de adoção)
+
+**Médio Prazo (Q2 2025):**
+- Tiers operacionais com billing (receita recorrente)
+- Concierge com IA para pré-atendimento (reduz carga de work)
+- Deals privados com RLS separada (diferencia Gold vs Black)
+- Valuation express integrado (agrega valor para Black)
+- Histórico de comportamento (recomendações +50% melhores)
+
+**Longo Prazo (Q3-Q4 2025):**
+- Matching automático em tempo real (notificações push)
+- Deal origination para Black (intermediadores procuram para você)
+- Analytics avançadas (visibilidade total de negócios)
+- 1000+ membros ativos + 100+ intermediadores
+- Maior club de deals privados do Brasil
+
+### Recomendação Final
+
+O GEREZIM **não precisa ser reescrito** — está bem arquitetado. Mas precisa:
+
+1. **Incorporar estratégia em cada layer** (não apenas funcionalidades)
+2. **Implementar diferenciação clara de tiers** (faz sentido o membro pagar mais)
+3. **Adicionar inteligência** (matching, valuation, scoring)
+4. **Formalizar design e UX** (para escalar com qualidade)
+5. **Automatizar o máximo possível** (reduzir trabalho manual)
+
+Com isso, passa de ser um "sistema de gerenciamento de deals" para ser um **"Clube Privado Digital de Elite"** — e aí sim pode cobrar premium.
+
+### Próximos Passos
+
+1. **Semana 1:** Apresentar este documento ao time
+2. **Semana 2-3:** Design system (tokens + componentes)
+3. **Semana 4:** Dashboards por tier
+4. **Semana 5:** Matching inteligente basic
+5. **Semana 6:** Testes, refinamento, deploy
+
+**Estimativa:** 6-8 semanas para transformar em clube verdadeiro.
+
+---
+
+**Documento revisado em:** 8 de dezembro de 2025
+**Status:** Pronto para implementação

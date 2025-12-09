@@ -330,10 +330,25 @@ export default function OpportunitiesStore({
         </div>
 
         <div className="flex gap-4 justify-center flex-wrap">
-          {categories.filter(cat => cat !== 'all').map((category) => (
+          {categories.filter(cat => cat !== 'all').map((category) => {
+            // Map category names to URL slugs
+            const categorySlugMap: Record<string, string> = {
+              'Carros de Luxo': 'carros-de-luxo',
+              'Imóveis': 'imoveis',
+              'Empresas': 'empresas',
+              'Premium': 'premium',
+              'Eletrônicos': 'eletronicos',
+              'Cartas Contempladas': 'cartas-contempladas',
+              'Indústrias': 'industrias',
+              'Embarcações': 'embarcacoes',
+              'Aeronaves': 'aeronaves'
+            }
+            const slug = categorySlugMap[category] || category.toLowerCase().replace(/ /g, '-')
+            
+            return (
             <Link
               key={category}
-              href={`/categorias/${category.toLowerCase().replace(/ /g, '-')}`}
+              href={`/categorias/${slug}`}
               className="flex-shrink-0 flex flex-col items-center gap-3 group transition-all duration-200 hover:scale-105"
             >
               {/* Circular Card */}
@@ -355,7 +370,8 @@ export default function OpportunitiesStore({
                 {category}
               </span>
             </Link>
-          ))}
+            )
+          })}
         </div>
       </div>
 
