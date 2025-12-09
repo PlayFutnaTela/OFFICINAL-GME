@@ -17,6 +17,14 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::TEXT, NOW()) NOT NULL
 );
 
+-- Add missing columns if they don't exist (for existing tables)
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS email_notifications BOOLEAN DEFAULT TRUE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS push_notifications BOOLEAN DEFAULT FALSE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS sms_notifications BOOLEAN DEFAULT FALSE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS international BOOLEAN DEFAULT FALSE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS notification_frequency TEXT DEFAULT 'daily';
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
+
 -- Enable RLS
 ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
 
