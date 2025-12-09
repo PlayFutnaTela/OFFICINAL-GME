@@ -26,7 +26,7 @@ export default async function OpportunitiesPage() {
   const [userProfileResponse, productsResponse] = await Promise.all([
     // Fetch user profile for avatar
     (async () => {
-      let userProfile = null
+      let userProfile: any = null
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {

@@ -32,7 +32,7 @@ export async function calculateHybridMatch(
 
   // Passo 2: Se score das regras é bom (>= 50), tentar análise de IA
   let aiScore = 0
-  let aiAnalysis = null
+  let aiAnalysis: any = null
   let combinedReasons = [...ruleResult.reasons]
 
   if (ruleScore >= 50) {
@@ -43,13 +43,15 @@ export async function calculateHybridMatch(
       // Se não há cache, chamar OpenAI
       if (!aiAnalysis) {
         aiAnalysis = await calculateAIMatch(user, product)
-        aiScore = aiAnalysis.score
+        if (aiAnalysis) {
+          aiScore = aiAnalysis.score
+        }
       } else {
         aiScore = aiAnalysis.score
       }
 
       // Adicionar razões da IA
-      if (aiAnalysis.reasons && aiAnalysis.reasons.length > 0) {
+      if (aiAnalysis && aiAnalysis.reasons && aiAnalysis.reasons.length > 0) {
         combinedReasons.push(...aiAnalysis.reasons)
       }
     } catch (error) {
