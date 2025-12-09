@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Package, ArrowLeft, ShoppingCart } from 'lucide-react'
 
+// Disable static generation for this dynamic route
+export const dynamic = 'force-dynamic'
+
 type Props = {
     params: {
         categoria: string

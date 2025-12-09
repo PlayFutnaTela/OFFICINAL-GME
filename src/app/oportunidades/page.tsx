@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import OpportunitiesStore from '@/components/opportunities-store'
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic'
+
 // Type for product data
 type Product = {
   id: string

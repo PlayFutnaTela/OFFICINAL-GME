@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProductDetail from '@/components/product-detail'
 
+// Disable static generation for this dynamic route
+export const dynamic = 'force-dynamic'
+
 export default async function OpportunityDetailPage({
   params
 }: {

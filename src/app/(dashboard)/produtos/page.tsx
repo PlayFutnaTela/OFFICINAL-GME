@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { requireAdminOrRedirect } from '@/lib/server-admin'
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic'
+
 export default async function ProdutosPage() {
   const supabase = createClient()
 

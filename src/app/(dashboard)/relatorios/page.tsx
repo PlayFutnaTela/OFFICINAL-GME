@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrRedirect } from '@/lib/server-admin'
 import { BarChart3, TrendingUp, CheckCircle2, XCircle } from "lucide-react"
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic'
+
 export default async function ReportsPage() {
   const supabase = createClient()
 

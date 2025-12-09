@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrRedirect } from '@/lib/server-admin'
 import PipelineBoard from '@/components/pipeline-board'
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic'
+
 export default async function PipelinePage() {
   const supabase = createClient()
 

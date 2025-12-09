@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import ConciergeLayoutClient from './layout-client'
 import Sidebar from '@/components/sidebar'
 import Topbar from '@/components/topbar'
-// import { ConciergeMobileMenu } from './components/mobile-menu' // Removed
+
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic'
 
 export default async function ConciergePage() {
     const supabase = createClient()
