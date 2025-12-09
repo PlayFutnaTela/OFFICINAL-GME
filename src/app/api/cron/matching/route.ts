@@ -4,6 +4,8 @@ import { calculateHybridMatch } from '@/lib/hybrid-matching'
 import { sendMatchNotification } from '@/actions/send-match-notification'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * Cron job diário para encontrar matches e enviar notificações
